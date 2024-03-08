@@ -1,0 +1,70 @@
+/remos/touchui/containers.lua:93: bad argument #1 to 'create' (table expected, got nil)
+stack traceback:
+	[C]: in function 'error'
+	...modules/main/cc/expect.lua:82: in function 'expect'
+	/rom/apis/window.lua:79: in function 'create'
+	/remos/touchui/containers.lua:93: in function 'fun'
+	/remos/touchui/containers.lua:30: in function 'iterateWidgets'
+	/remos/touchui/containers.lua:161: in function 'addWidget'
+	/remos/taskmon.lua:52: in main chunk
+/remos/touchui/containers.lua:93: bad argument #1 to 'create' (table expected, got nil)
+stack traceback:
+	[C]: in function 'error'
+	...modules/main/cc/expect.lua:82: in function 'expect'
+	/rom/apis/window.lua:79: in function 'create'
+	/remos/touchui/containers.lua:93: in function 'fun'
+	/remos/touchui/containers.lua:30: in function 'iterateWidgets'
+	/remos/touchui/containers.lua:161: in function 'addWidget'
+	/remos/taskmon.lua:58: in main chunk
+/remos/taskmon.lua:83: attempt to index local 'a' (a nil value)
+stack traceback:
+	[C]: in function 'error'
+	/rom/apis/parallel.lua:52: in function </rom/apis/parallel.lua:38>
+	(...tail calls...)
+	/remos/taskmon.lua:94: in main chunk
+/remos/taskmon.lua:65: attempt to index field 'format' (a nil value)
+stack traceback:
+	[C]: in function 'error'
+	/rom/apis/parallel.lua:52: in function </rom/apis/parallel.lua:38>
+	(...tail calls...)
+	/remos/taskmon.lua:100: in main chunk
+/remos/taskmon.lua:65: attempt to index field 'format' (a nil value)
+stack traceback:
+	[C]: in function 'error'
+	/rom/apis/parallel.lua:52: in function </rom/apis/parallel.lua:38>
+	(...tail calls...)
+	/remos/taskmon.lua:100: in main chunk
+/remos/taskmon.lua:67: attempt to index local 'field' (a nil value)
+stack traceback:
+	/remos/taskmon.lua:67: in function 'updateSortField'
+	/remos/taskmon.lua:75: in main chunk
+/test.lua:11: toggled!
+stack traceback:
+	[C]: in function 'error'
+	/test.lua:11: in function 'onUpdate'
+	/remos/touchui/input.lua:118: in function </remos/touchui/input.lua:115>
+	(...tail calls...)
+	/remos/touchui/containers.lua:30: in function </remos/touchui/containers.lua:25>
+	(...tail calls...)
+	/remos/touchui/init.lua:190: in function 'run'
+	/test.lua:22: in main chunk
+/test.lua:11: toggled!
+stack traceback:
+	[C]: in function 'error'
+	/test.lua:11: in function 'onUpdate'
+	/remos/touchui/input.lua:118: in function </remos/touchui/input.lua:115>
+	(...tail calls...)
+	/remos/touchui/containers.lua:30: in function </remos/touchui/containers.lua:25>
+	(...tail calls...)
+	/remos/touchui/init.lua:190: in function 'run'
+	/test.lua:22: in main chunk
+/test.lua:11: toggled!
+stack traceback:
+	[C]: in function 'error'
+	/test.lua:11: in function 'onUpdate'
+	/remos/touchui/input.lua:118: in function </remos/touchui/input.lua:115>
+	(...tail calls...)
+	/remos/touchui/containers.lua:30: in function </remos/touchui/containers.lua:25>
+	(...tail calls...)
+	/remos/touchui/init.lua:190: in function 'run'
+	/test.lua:22: in main chunk
