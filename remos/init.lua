@@ -2,9 +2,16 @@ local tui = require("touchui")
 local container = require("touchui.containers")
 local input = require("touchui.input")
 
-tui.theme.bg = colors.black
-tui.theme.fg = colors.white
-tui.theme.highlight = colors.orange
+local darkMode = false
+local inverseButtons = true
+
+if darkMode then
+    tui.theme.bg = colors.black
+    tui.theme.fg = colors.white
+    tui.theme.highlight = colors.orange
+    tui.theme.inputbg = colors.gray
+    tui.theme.inputfg = colors.white
+end
 
 local termW, termH = term.getSize()
 
@@ -16,7 +23,6 @@ local barTheme = {
     bg = tui.theme.fg
 }
 
-local inverseButtons = false
 
 local bottomBarProcess = function()
     local bottomBarHBox = container.hBox()
