@@ -226,7 +226,7 @@ local inputWidget_meta = { __index = inputWidget__index }
 
 function inputWidget__index:shortPress(button, x, y)
     local centerY = math.floor(self.h / 2)
-    if tui.withinSquare(x, y, 2 + #self.label, centerY, self.w - 1, centerY) then
+    if tui.withinSquare(x, y, 3 + #self.label, centerY, self.w - 1, centerY) then
         self.focused = true
         return true
     end
@@ -234,8 +234,7 @@ function inputWidget__index:shortPress(button, x, y)
 end
 
 function inputWidget__index:updateScroll(dx)
-    local leftX = 2 + #self.label
-    local fieldW = self.w - 2 - #self.label
+    local fieldW = self.w - 3 - #self.label
     self.cursorPos = math.min(math.max(self.cursorPos + dx, 1), #self.value + 1)
     local newScroll = math.floor(self.cursorPos - (fieldW / 2))
     self.scrollPos = math.max(math.min(newScroll, #self.value - fieldW + 2), 1)
@@ -272,7 +271,7 @@ function inputWidget__index:key(code)
 end
 
 function inputWidget__index:draw()
-    local leftX = 2 + #self.label
+    local leftX = 3 + #self.label
     local fieldW = self.w - 2 - #self.label
     self.window.setVisible(false)
     draw.set_col(self.theme.fg, self.theme.bg, self.window)

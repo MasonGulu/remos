@@ -88,7 +88,7 @@ function genericBox__index:updateWidgetWin(i, widget)
     end
     if widget.window then
         win = widget.window
-        widget.window.reposition(x, y, w, h)
+        widget.window.reposition(x, y, w, h, self.window)
     else
         win = window.create(self.window, x, y, w, h)
     end
@@ -156,9 +156,11 @@ function genericBox__index:addWidget(wid, size)
     self.autoCellSize[self.cellCount] = nil
     assert(wid.setTheme, debug.traceback("no theme?"))
     wid:setTheme(self.theme)
-    self:resetCellSizes()
-    self:updateCellPos()
-    self:iterateWidgets(self.updateWidgetWin)
+    if self.window then
+        self:resetCellSizes()
+        self:updateCellPos()
+        self:iterateWidgets(self.updateWidgetWin)
+    end
 end
 
 function genericBox__index:draw()
@@ -234,10 +236,19 @@ function genericScrollableBox__index:setWindow(win)
     self.window = win
     self.w, self.h = win.getSize()
     self.x, self.y = win.getPosition()
+    local function winmodify(x, y, w, h)
+        return window.create(win, x, y, w, h)
+    end
+    if self.parentWindow then
+        function winmodify(x, y, w, h)
+            self.parentWindow.reposition(x, y, w, h, win)
+            return self.parentWindow
+        end
+    end
     if self.dir == "h" then
-        self.parentWindow = window.create(win, 1, -self.scrolledY + 1, self.w - 1, self.totalHeight)
+        self.parentWindow = winmodify(1, -self.scrolledY + 1, self.w - 1, self.totalHeight)
     else
-        self.parentWindow = window.create(win, -self.scrolledY + 1, 1, self.totalHeight, self.h - 1)
+        self.parentWindow = winmodify(-self.scrolledY + 1, 1, self.totalHeight, self.h - 1)
     end
     self:updateMaxScroll()
     self.parent:setWindow(self.parentWindow)

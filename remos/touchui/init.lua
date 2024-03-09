@@ -35,6 +35,12 @@ local theme = {
     highlight = colors.blue,
 }
 
+local function log(s, ...)
+    local f = assert(fs.open("log.txt", "a"))
+    f.writeLine(s:format(...))
+    f.close()
+end
+
 local function applyThemePassthrough(th)
     if th == theme then return theme end
     return setmetatable(th, { __index = theme })
@@ -96,14 +102,13 @@ function textWidget__index:draw()
     self.window.setVisible(false)
     draw.set_col(self.theme.fg, self.theme.bg, self.window)
     self.window.clear()
-    self.lines = #self.wrapped
-    for i = 1, #self.wrapped do
+    for i, t in ipairs(self.wrapped) do
         if self.alignment == "c" then
-            draw.center_text(i, self.wrapped[i], self.window)
+            draw.center_text(i, t, self.window)
         elseif self.alignment == "l" then
-            draw.text(1, i, self.wrapped[i], self.window)
+            draw.text(1, i, t, self.window)
         elseif self.alignment == "r" then
-            draw.text(self.w - #self.wrapped[i], i, self.wrapped[i], self.window)
+            draw.text(self.w - #t, i, t, self.window)
         end
     end
     self.window.setVisible(true)
@@ -202,11 +207,6 @@ local function run(root, allowBack, onEvent)
     end
 end
 
-local function log(s, ...)
-    local f = assert(fs.open("log.txt", "a"))
-    f.writeLine(s:format(...))
-    f.close()
-end
 
 ---Check if a value x,y falls between x1,y1 and x2,y2
 ---@param x integer
