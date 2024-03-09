@@ -20,6 +20,7 @@ local draw = require "touchui.draw"
 ---@field meanExeTime number ms average time / coroutine.resume
 ---@field cyclesAlive integer # of cycles this process has survived
 ---@field state "alive"|"dead"|"errored"|"terminated"
+---@field children integer[]
 
 local lastpid = 0
 ---@type table<integer,Process>
@@ -29,7 +30,12 @@ local apps = {}
 local focusedpid
 local runningpid = 0
 
-local autoCleanupDoneProcesses = false
+local menupid, homepid
+
+---Whether a dead app should be cleaned up whenever focus is lost
+local autoCleanupOnFocusLoss = true
+---Whether all apps should be automatically closed
+local autoCloseDeadApps = true
 
 local function logError(s, ...)
     local f = assert(fs.open("errors.txt", "a"))
@@ -62,8 +68,13 @@ local function addProcess(fun, title, ppid, window)
         totalExeTime = 0,
         lastExeTime = 0,
         cyclesAlive = 0,
-        meanExeTime = 0
+        meanExeTime = 0,
+        children = {}
     }
+    local parent = processes[ppid]
+    if parent then
+        parent.children[#parent.children + 1] = lastpid
+    end
     return lastpid
 end
 local applicationWin = window.create(term.current(), 1, 2, termW, termH - 2)
@@ -161,7 +172,17 @@ local focusedx, focusedy = 1, 1
 local focusedfg, focusedbg = colors.white, colors.black
 local cursorBlink = false
 
-local popup
+local terminateProcess
+local function terminateProcessChildren(pid)
+    if not processes[pid] then
+        return
+    end
+    for _, cpid in ipairs(processes[pid].children) do
+        terminateProcess(cpid)
+    end
+end
+
+local popup, setFocused, cleanupProcess
 ---Resume a given process with given arguments, doesn't check filter
 ---@param process Process
 ---@param ... any
@@ -192,7 +213,7 @@ local function resumeProcess(process, ...)
             term.redirect(oldWin)
         end
         term.setCursorPos(1, 1)
-        process.terminateOnFocusLoss = autoCleanupDoneProcesses
+        process.terminateOnFocusLoss = autoCleanupOnFocusLoss
         popup(("%s errored!"):format(process.title), t)
     end
     process.filter = err
@@ -211,25 +232,28 @@ local function resumeProcess(process, ...)
         end
         draw.set_col(colors.white, colors.red, process.window)
         draw.center_text(1, ("** %s **"):format(process.state), process.window)
-        process.terminateOnFocusLoss = autoCleanupDoneProcesses
+        process.terminateOnFocusLoss = autoCleanupOnFocusLoss
+        terminateProcessChildren(process.pid)
+        if autoCloseDeadApps then
+            cleanupProcess(process.pid)
+        end
     end
     return err
 end
 
 ---Terminate a process
 ---@param pid integer
-local function terminateProcess(pid)
+function terminateProcess(pid)
     local process = processes[pid]
     if process and process.state == "alive" then
         resumeProcess(process, "terminate")
     end
+    terminateProcessChildren(pid)
 end
-
-local setFocused
 
 ---Cleanup the information associated with a given process
 ---@param pid integer
-local function cleanupProcess(pid)
+function cleanupProcess(pid)
     local process = processes[pid]
     if process then
         terminateProcess(pid)
@@ -237,7 +261,7 @@ local function cleanupProcess(pid)
         if process.app then
             removeFromArray(apps, process)
             if focusedpid == process.pid then
-                setFocused((apps[1] or {}).pid)
+                setFocused(menupid)
             end
         end
     end
@@ -251,10 +275,12 @@ local function clearFocused()
         if win then
             win.setVisible(false)
         end
+        focusedpid = nil
         if process.terminateOnFocusLoss then
             cleanupProcess(process.pid)
         end
     end
+    focusedpid = nil
 end
 
 ---Set a process as the focused process
@@ -277,10 +303,9 @@ function setFocused(pid)
         local win = process.window
         if win then
             win.setVisible(true)
-            win.redraw()
+            -- win.redraw()
         end
     end
-    focusedpid = pid
 end
 
 ---Tick a given process
@@ -401,6 +426,18 @@ _G.remos = {
     end,
     terminateOnFocusLoss = function()
         terminateOnFocusLoss(runningpid)
+    end,
+    ---Set the pid of the which process is "home"
+    ---@param pid integer
+    setHomePid = function(pid)
+        removeFromArray(apps, processes[pid])
+        homepid = pid
+    end,
+    ---Set the pid of the which process is "menu"
+    ---@param pid integer
+    setMenuPid = function(pid)
+        removeFromArray(apps, processes[pid])
+        menupid = pid
     end
 }
 

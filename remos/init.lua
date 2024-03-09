@@ -2,7 +2,7 @@ local tui = require("touchui")
 local container = require("touchui.containers")
 local input = require("touchui.input")
 
-local darkMode = false
+local darkMode = true
 local inverseButtons = true
 
 if darkMode then
@@ -67,10 +67,9 @@ end
 local topBarpid = remos.addProcess(topBarProcess, "topBarUI", topBarWin)
 remos.setFocused(topBarpid)
 
-local menupid = remos.addAppFile("remos/menu.lua")
-remos.setFocused(menupid)
+local menupid = assert(remos.addAppFile("remos/menu.lua"))
+remos.setMenuPid(menupid)
 -- hide menu from itself
-remos._apps[1] = nil
 
 local timer = os.startTimer(1)
 while true do
