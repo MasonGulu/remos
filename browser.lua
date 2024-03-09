@@ -21,43 +21,20 @@ local fileOptions = {
     "Run",
     "Edit"
 }
----@param filePath string
-local function listPopup(filePath)
-    local label = "File Options"
-    local itemH = 1
-    local rootWin = window.create(term.current(), 1, 1, term.getSize())
-    local rootVbox = container.vBox()
-    rootVbox:setWindow(rootWin)
-    local titleText = tui.textWidget(label, "c")
-    rootVbox:addWidget(titleText, 1)
 
-    local attributeVbox = container.vBox()
-    rootVbox:addWidget(attributeVbox)
+local updatePath
+local function fileMenu(filePath)
+    local label = "File Options"
     local attributes = fs.attributes(filePath)
+    local attributeVbox = container.vBox()
     attributeVbox:addWidget(tui.textWidget(("Path: %s"):format(filePath), "l"))
     attributeVbox:addWidget(tui.textWidget(("Size: %d bytes"):format(attributes.size), "l"))
     attributeVbox:addWidget(tui.textWidget(("Created: %s"):format(os.date("%D %T", attributes.created)), "l"))
     attributeVbox:addWidget(tui.textWidget(("Modified: %s"):format(os.date("%D %T", attributes.modified)), "l"))
 
-    local selectedIndex, selectedItem
-    local itemList = list.listWidget(fileOptions, itemH, function(win, x, y, w, h, item, theme)
+    local i, item = popups.listPopup(label, fileOptions, 1, function(win, x, y, w, h, item, theme)
         draw.text(x, y, item, win)
-    end, function(index, item)
-        selectedIndex = index
-        selectedItem = item
-        tui.quit(rootVbox)
-    end)
-    local box = container.framedBox(itemList)
-    rootVbox:addWidget(box)
-
-    tui.run(rootVbox, true)
-
-    return selectedIndex, selectedItem
-end
-
-local updatePath
-local function fileMenu(filePath)
-    local i, item = listPopup(filePath)
+    end, attributeVbox)
     if item then
         if item == "Run" then
             remos.addAppFile(filePath)
