@@ -31,7 +31,9 @@ addField(11, "State", "state", "%11s")
 addField(9, "Mean ms", "meanExeTime", "%.3f", true)
 addField(9, "Last ms", "lastExeTime", "%9d")
 addField(9, "Total ms", "totalExeTime", "%9d")
-addField(7, "Cycles", "cyclesAlive", "%7d")
+-- addField(7, "Cycles", "cyclesAlive", "%7d")
+-- addField(7, "Focused", "focused")
+-- addField(10, "Filter", "filter")
 local headerStr = ""
 local ccstrings = require "cc.strings"
 ---@param item Process
@@ -85,7 +87,11 @@ updateSortField(fields[2])
 
 local sortedProcesses = {}
 local inbox = list.listWidget(sortedProcesses, 1, function(win, x, y, w, h, item, theme)
+    if y % 2 == 1 then
+        draw.set_col(theme.inputfg, theme.inputbg, win)
+    end
     draw.text(x, y, getListStr(item), win)
+    draw.set_col(theme.fg, theme.bg, win)
 end)
 vBox:addWidget(inbox)
 
