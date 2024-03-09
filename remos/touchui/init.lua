@@ -30,8 +30,8 @@ local theme = {
     fg = colors.black,
     checked = colors.green,
     unchecked = colors.red,
-    inputbg = colors.gray,
-    inputfg = colors.yellow,
+    inputbg = colors.lightGray,
+    inputfg = colors.black,
     highlight = colors.blue,
 }
 
