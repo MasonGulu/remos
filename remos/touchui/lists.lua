@@ -264,14 +264,6 @@ function gridListWidget__index:postDraw()
     draw.center_text(self.h, str, self.window)
 end
 
-function gridListWidget__index:longPress(button)
-    if button == 1 then
-        self.page = self.page + 1
-    elseif button == 2 then
-        self.page = self.page - 1
-    end
-end
-
 function gridListWidget__index:dragStart(button, sx, sy, nx, ny)
     if not self:cursorInBox(sx, sy) then
         return false
