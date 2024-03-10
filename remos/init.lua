@@ -69,7 +69,9 @@ remos.setFocused(topBarpid)
 
 local menupid = assert(remos.addAppFile("remos/menu.lua"))
 remos.setMenuPid(menupid)
--- hide menu from itself
+
+local homepid = assert(remos.addAppFile("remos/home.lua"))
+remos.setHomePid(homepid)
 
 local timer = os.startTimer(1)
 while true do
@@ -78,7 +80,8 @@ while true do
         remos.setFocused(menupid)
     elseif e == "homeButton" then
         -- remos.addAppFile("rom/programs/shell.lua")
-        remos.addAppFile("browser.lua")
+        -- remos.addAppFile("browser.lua")
+        remos.setFocused(homepid)
     elseif e == "timer" and id == timer then
         timer = os.startTimer(1)
     end

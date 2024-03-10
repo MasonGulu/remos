@@ -274,6 +274,18 @@ local function square(x, y, w, h, dev)
     invert(dev)
 end
 
+---@alias BLIT {[1]:string,[2]:string,[3]:string}[]
+
+---@param x integer
+---@param y integer
+---@param img BLIT
+---@param dev Window
+local function draw_blit(x, y, img, dev)
+    for i = 1, #img do
+        dev.setCursorPos(x, y + i - 1)
+        dev.blit(table.unpack(img[i]))
+    end
+end
 
 return {
     line = line,
@@ -292,5 +304,6 @@ return {
     invert = invert,
     square = square,
     set_col = set_col,
-    center_text = center_text
+    center_text = center_text,
+    draw_blit = draw_blit
 }

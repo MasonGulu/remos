@@ -438,6 +438,22 @@ _G.remos = {
     setMenuPid = function(pid)
         removeFromArray(apps, processes[pid])
         menupid = pid
+    end,
+    ---Load a table from a file
+    ---@param fn string
+    ---@return table?
+    ---@return string?
+    loadTable = function(fn)
+        local f, err = fs.open(fn, "r")
+        if not f then
+            return nil, err
+        end
+        local t = f.readAll()
+        if not t then
+            return nil, "Empty file"
+        end
+        f.close()
+        return textutils.unserialise(t) --[[@as table?]], "Failed to unserialize"
     end
 }
 

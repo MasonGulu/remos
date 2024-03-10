@@ -1,0 +1,20 @@
+{
+    {
+        label = "Shell",
+        path = "/rom/programs/shell.lua"
+    },
+    {
+        label = "Taskmon",
+        path = "remos/taskmon.lua"
+    },
+    {
+        label = "Browser",
+        path = "browser.lua"
+    },
+    {
+        label = "Worm",
+        path = "rom/programs/fun/worm.lua",
+        iconSmallFile = "icons/worm_icon_small.blit",
+        iconLargeFile = "icons/worm_icon_large.blit"
+    }
+}
