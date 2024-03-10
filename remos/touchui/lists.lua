@@ -2,23 +2,51 @@ local tui = require "touchui"
 local theme = tui.theme
 local draw = require "touchui.draw"
 
----@class ListWidget : Widget
-local listWidget__index = setmetatable({}, tui.emptyWidget_meta)
-local listWidget_meta = { __index = listWidget__index }
+---@class GenericListWidget : Widget
+---@field getLayout fun(self: GenericListWidget, index: integer): x: integer, y: integer, w:integer, h:integer
+---@field postDraw fun(self: GenericListWidget)
+---@field updateTable fun(self: GenericListWidget)
+---@field getItem fun(self: GenericListWidget, x: integer, y: integer): index: integer?
+local genericListWidget__index = setmetatable({}, tui.emptyWidget_meta)
+local genericListWidget_meta = { __index = genericListWidget__index }
 
-function listWidget__index:draw()
+
+function genericListWidget__index:draw()
     self.window.setVisible(false)
     draw.set_col(self.theme.fg, self.theme.bg, self.window)
     self.window.clear()
-    self:updateMaxScroll()
+    self:updateTable()
     for i = 1, #self.table do
-        local y = ((i - 1) * self.itemH) + 1 - self.scrolledY
-        local x = 1
-        if self.draggingItem == i then
-            x = self.dragEndX - self.dragStartX + 1
-        end
-        self.drawItem(self.window, x, y, self.w, self.itemH, self.table[i], self.theme)
+        local x, y, w, h = self:getLayout(i)
+        self.drawItem(self.window, x, y, w, h, self.table[i], self.theme)
     end
+    self:postDraw()
+    self.window.setVisible(true)
+end
+
+function genericListWidget__index:cursorInBox(x, y)
+    return x >= 1 and x <= self.w and y >= 1 and y <= self.h
+end
+
+function genericListWidget__index:setTable(t)
+    self.table = t
+    self:updateTable()
+end
+
+---@class ListWidget : GenericListWidget
+local listWidget__index = setmetatable({}, genericListWidget_meta)
+local listWidget_meta = { __index = listWidget__index }
+
+function listWidget__index:getLayout(i)
+    local y = ((i - 1) * self.itemH) + 1 - self.scrolledY
+    local x = 1
+    if self.draggingItem == i then
+        x = self.dragEndX - self.dragStartX + 1
+    end
+    return x, y, self.w, self.itemH
+end
+
+function listWidget__index:postDraw()
     if self.scrolledY > 0 then
         draw.text(self.w, 1, "\24", self.window)
     end
@@ -29,10 +57,9 @@ function listWidget__index:draw()
     for i = 0, self.barSize - 1 do
         draw.text(self.w, sy + i, "\127", self.window)
     end
-    self.window.setVisible(true)
 end
 
-function listWidget__index:updateMaxScroll()
+function listWidget__index:updateTable()
     assert(self.table, debug.traceback("No item?"))
     local totalHeight = #self.table * self.itemH
     self.maxScroll = math.max(totalHeight - self.h, 0)
@@ -41,23 +68,38 @@ function listWidget__index:updateMaxScroll()
 end
 
 function listWidget__index:setScroll(v)
-    self:updateMaxScroll()
+    self:updateTable()
     self.scrolledY = math.min(math.max(v, 0), self.maxScroll)
 end
 
-function listWidget__index:setTable(t)
-    self.table = t
-    self:updateMaxScroll()
+function listWidget__index:shortPress(button, x, y)
+    if self:cursorInBox(x, y) and self.onShortPress then
+        local i = self:getItem(x, y)
+        if not i then
+            return
+        end
+        if self.onShortPress then
+            self.onShortPress(i, self.table[i])
+        end
+    end
 end
 
-function listWidget__index:cursorInBox(x, y)
-    return x >= 1 and x <= self.w and y >= 1 and y <= self.h
+function listWidget__index:longPress(button, x, y)
+    if self:cursorInBox(x, y) and self.onLongPress then
+        local i = self:getItem(x, y)
+        if not i then
+            return
+        end
+        if self.onLongPress then
+            self.onLongPress(i, self.table[i])
+        end
+    end
 end
 
 ---Get an item a given y coordinate coresponds with
 ---@param y integer
 ---@return integer?
-function listWidget__index:getItem(y)
+function listWidget__index:getItem(_, y)
     local i = math.floor((y + self.scrolledY - 1) / self.itemH) + 1
     i = math.min(i, #self.table)
     if not self.table[i] then
@@ -71,7 +113,7 @@ function listWidget__index:dragStart(button, sx, sy, nx, ny)
         return false
     end
     if (sy == ny) and self.allowDragging then
-        self.draggingItem = self:getItem(sy)
+        self.draggingItem = self:getItem(sx, sy)
         if not self.draggingItem then
             return
         end
@@ -118,26 +160,6 @@ function listWidget__index:dragEnd(button, x, y)
         end
         self.draggingItem = nil
         return true
-    end
-end
-
-function listWidget__index:shortPress(button, x, y)
-    if self:cursorInBox(x, y) and self.onShortPress then
-        local i = self:getItem(y)
-        if not i then
-            return
-        end
-        self.onShortPress(i, self.table[i])
-    end
-end
-
-function listWidget__index:longPress(button, x, y)
-    if self:cursorInBox(x, y) and self.onLongPress then
-        local i = self:getItem(y)
-        if not i then
-            return
-        end
-        self.onLongPress(i, self.table[i])
     end
 end
 
