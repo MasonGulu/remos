@@ -23,15 +23,17 @@ local files = {
         ["menu.lua"] = fromRepository "remos/menu.lua",
         ["popup.lua"] = fromRepository "remos/popup.lua",
         ["taskmon.lua"] = fromRepository "remos/taskmon.lua",
+    },
+    libs = {
         touchui = {
             ["containers.lua"] = fromRepository "remos/touchui/containers.lua",
-            ["draw.lua"] = fromRepository "remos/touchui/draw.lua",
-            ["fe.lua"] = fromRepository "remos/touchui/fe.lua",
             ["init.lua"] = fromRepository "remos/touchui/init.lua",
             ["input.lua"] = fromRepository "remos/touchui/input.lua",
             ["lists.lua"] = fromRepository "remos/touchui/lists.lua",
             ["popups.lua"] = fromRepository "remos/touchui/popups.lua",
-        }
+        },
+        ["fe.lua"] = fromRepository "remos/touchui/fe.lua",
+        ["draw.lua"] = fromRepository "remos/touchui/draw.lua",
     },
     config = {
         ["home_apps.table"] = fromRepository "config/home_apps.table",
