@@ -17,8 +17,8 @@
 ---@field h integer
 ---@field x integer
 ---@field y integer
-local fe = require "touchui.fe"
-local draw = require "touchui.draw"
+local fe = require "fe"
+local draw = require "draw"
 local strings = require("cc.strings")
 
 

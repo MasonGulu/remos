@@ -3,7 +3,7 @@ local tui = require("touchui")
 local container = require("touchui.containers")
 local input = require("touchui.input")
 local list = require("touchui.lists")
-local draw = require("touchui.draw")
+local draw = require("draw")
 local homeWin = window.create(term.current(), 1, 1, term.getSize())
 
 local inbox = list.listWidget(remos._apps, 8, function(win, x, y, w, h, item, theme)

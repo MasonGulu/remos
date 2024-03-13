@@ -5,7 +5,7 @@ local input = require("touchui.input")
 local rootWin = window.create(term.current(), 1, 1, term.getSize())
 local list = require("touchui.lists")
 local popups = require("touchui.popups")
-local draw = require("touchui.draw")
+local draw = require("draw")
 
 local path = "/"
 

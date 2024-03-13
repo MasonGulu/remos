@@ -1,5 +1,5 @@
 local tui = require("touchui")
-local draw = require "touchui.draw"
+local draw = require "draw"
 
 ---@class ButtonWidget : Widget
 local buttonWidget__index = setmetatable({}, tui.emptyWidget_meta)

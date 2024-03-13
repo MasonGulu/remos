@@ -2,7 +2,7 @@ local tui = require("touchui")
 local container = require("touchui.containers")
 local input = require("touchui.input")
 local list = require("touchui.lists")
-local draw = require("touchui.draw")
+local draw = require("draw")
 local homeWin = window.create(term.current(), 1, 1, term.getSize())
 
 

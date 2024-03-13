@@ -1,6 +1,6 @@
 local tui = require "touchui"
 local theme = tui.theme
-local draw = require "touchui.draw"
+local draw = require "draw"
 
 ---@param widget Widget
 ---@param x integer

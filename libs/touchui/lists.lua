@@ -1,6 +1,6 @@
 local tui = require "touchui"
 local theme = tui.theme
-local draw = require "touchui.draw"
+local draw = require "draw"
 
 ---@class GenericListWidget : Widget
 ---@field getLayout fun(self: GenericListWidget, index: integer): x: integer, y: integer, w:integer, h:integer

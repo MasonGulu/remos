@@ -1,5 +1,7 @@
+package.path = package.path .. ";/libs/?.lua/;/libs/?/init.lua"
+
 local termW, termH = term.getSize()
-local draw = require "touchui.draw"
+local draw = require "draw"
 
 ---@class Process
 ---@field pid integer
