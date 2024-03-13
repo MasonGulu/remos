@@ -154,8 +154,21 @@ function genericBox__index:addWidget(wid, size)
     self.widgets[self.cellCount] = wid
     self.cellSizes[self.cellCount] = size
     self.autoCellSize[self.cellCount] = nil
-    assert(wid.setTheme, debug.traceback("no theme?"))
     wid:setTheme(self.theme)
+    if self.window then
+        self:resetCellSizes()
+        self:updateCellPos()
+        self:iterateWidgets(self.updateWidgetWin)
+    end
+end
+
+---Clear this boxes widgets
+function genericBox__index:clearWidgets()
+    self.cellCount = 0
+    self.widgets = {}
+    self.cellPos = {}
+    self.cellSizes = {}
+    self.autoCellSize = {}
     if self.window then
         self:resetCellSizes()
         self:updateCellPos()
@@ -261,6 +274,15 @@ function genericScrollableBox__index:addWidget(wid, h)
     self.totalHeight = self.totalHeight + h
     self:updateMaxScroll()
     self.parent:addWidget(wid, h)
+    self:repositionWindow()
+end
+
+---Clear the widgets this contains
+function genericScrollableBox__index:clearWidgets()
+    self.totalHeight = 0
+    self.widgets = {}
+    self:updateMaxScroll()
+    self.parent:clearWidgets()
     self:repositionWindow()
 end
 

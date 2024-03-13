@@ -32,10 +32,21 @@ local runningpid = 0
 
 local menupid, homepid
 
+settings.define("remos.autoCleanupOnFocusLoss", {
+    description = "Whether dead apps should be cleaned up whenever focus is lost.",
+    type = "boolean",
+    default = true
+})
 ---Whether a dead app should be cleaned up whenever focus is lost
-local autoCleanupOnFocusLoss = true
+local autoCleanupOnFocusLoss = settings.get("remos.autoCleanupOnFocusLoss")
+settings.define("remos.autoCloseDeadApps", {
+    description = "Whether all dead apps should be automatically closed.",
+    type = "boolean",
+    default = true
+})
 ---Whether all apps should be automatically closed
-local autoCloseDeadApps = true
+local autoCloseDeadApps = settings.get("remos.autoCloseDeadApps")
+settings.save()
 
 local function logError(s, ...)
     local f = assert(fs.open("errors.txt", "a"))
@@ -333,6 +344,10 @@ local function runProcesses()
         local e = table.pack(os.pullEventRaw())
         if e[1] == "terminate" then
             -- TODO
+        elseif e[1] == "backButton" and focusedpid == menupid then
+            setFocused(homepid)
+        elseif e[1] == "menuButton" and focusedpid == menupid then
+            setFocused(homepid)
         else
             for pid, process in pairs(processes) do
                 tickProcess(e, process)
@@ -454,6 +469,17 @@ _G.remos = {
         end
         f.close()
         return textutils.unserialise(t) --[[@as table?]], "Failed to unserialize"
+    end,
+    deepClone = function(t)
+        local nt = {}
+        for k, v in pairs(t) do
+            if type(v) == "table" then
+                nt[k] = remos.deepClone(v)
+            else
+                nt[k] = v
+            end
+        end
+        return nt
     end
 }
 

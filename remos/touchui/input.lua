@@ -122,11 +122,12 @@ end
 ---Create a toggle switch widget
 ---@param label string
 ---@param onUpdate fun(state:boolean)
+---@param state boolean?
 ---@return ToggleWidget
-local function toggleWidget(label, onUpdate)
+local function toggleWidget(label, onUpdate, state)
     ---@class ToggleWidget
     local self = setmetatable(tui.emptyWidget(), toggleWidget_meta)
-    self.state = false
+    self.state = state
     self.onUpdate = onUpdate
     self.label = label
 
