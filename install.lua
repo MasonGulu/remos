@@ -26,14 +26,14 @@ local files = {
     },
     libs = {
         touchui = {
-            ["containers.lua"] = fromRepository "remos/touchui/containers.lua",
-            ["init.lua"] = fromRepository "remos/touchui/init.lua",
-            ["input.lua"] = fromRepository "remos/touchui/input.lua",
-            ["lists.lua"] = fromRepository "remos/touchui/lists.lua",
-            ["popups.lua"] = fromRepository "remos/touchui/popups.lua",
+            ["containers.lua"] = fromRepository "libs/touchui/containers.lua",
+            ["init.lua"] = fromRepository "libs/touchui/init.lua",
+            ["input.lua"] = fromRepository "libs/touchui/input.lua",
+            ["lists.lua"] = fromRepository "libs/touchui/lists.lua",
+            ["popups.lua"] = fromRepository "libs/touchui/popups.lua",
         },
-        ["fe.lua"] = fromRepository "remos/touchui/fe.lua",
-        ["draw.lua"] = fromRepository "remos/touchui/draw.lua",
+        ["fe.lua"] = fromRepository "libs/fe.lua",
+        ["draw.lua"] = fromRepository "libs/draw.lua",
     },
     config = {
         ["home_apps.table"] = fromRepository "config/home_apps.table",
