@@ -287,8 +287,10 @@ function genericScrollableBox__index:clearWidgets()
 end
 
 function genericScrollableBox__index:setScroll(v)
+    local oldY = self.scrolledY
     self.scrolledY = math.min(math.max(v, 0), self.maxScroll)
     self:repositionWindow()
+    return oldY ~= self.scrolledY
 end
 
 function genericScrollableBox__index:repositionCords(x, y)
@@ -371,8 +373,7 @@ end
 function genericScrollableBox__index:scroll(dir, x, y)
     local scrollUsed = self.parent:scroll(dir, self:repositionCords(x, y))
     if (not scrollUsed) and self:cursorInBox(x, y) then
-        self:setScroll(self.scrolledY + dir)
-        return true
+        return self:setScroll(self.scrolledY + dir)
     end
     return scrollUsed
 end

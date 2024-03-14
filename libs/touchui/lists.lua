@@ -98,8 +98,10 @@ function listWidget__index:updateTable()
 end
 
 function listWidget__index:setScroll(v)
+    local oldScroll = self.scrolledY
     self:updateTable()
     self.scrolledY = math.min(math.max(v, 0), self.maxScroll)
+    return self.scrolledY ~= oldScroll
 end
 
 ---Get an item a given y coordinate coresponds with
@@ -171,8 +173,7 @@ end
 
 function listWidget__index:scroll(dir, x, y)
     if self:cursorInBox(x, y) then
-        self:setScroll(self.scrolledY + dir)
-        return true
+        return self:setScroll(self.scrolledY + dir)
     end
 end
 
