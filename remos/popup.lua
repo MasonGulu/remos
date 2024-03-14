@@ -25,4 +25,4 @@ vbox:addWidget(footer, 1)
 
 remos.terminateOnFocusLoss()
 
-tui.run(rootBox, true)
+tui.run(rootBox, true, nil, true)

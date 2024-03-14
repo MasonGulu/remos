@@ -29,4 +29,4 @@ end, function(i, proc)
 end)
 inbox:setWindow(homeWin)
 
-tui.run(inbox)
+tui.run(inbox, nil, nil, true)

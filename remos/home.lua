@@ -65,4 +65,4 @@ end, function(index, item)
 end)
 gridList:setWindow(homeWin)
 
-tui.run(gridList)
+tui.run(gridList, nil, nil, true)

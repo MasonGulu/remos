@@ -38,6 +38,7 @@ local bottomBarProcess = function()
 end
 local bottomBarpid = remos.addProcess(bottomBarProcess, "bottomBarUI", bottomBarWin)
 remos.setFocused(bottomBarpid)
+remos.setBottomBarPid(bottomBarpid)
 
 ---@type TextWidget
 local timeText
@@ -51,6 +52,7 @@ local topBarProcess = function()
 end
 local topBarpid = remos.addProcess(topBarProcess, "topBarUI", topBarWin)
 remos.setFocused(topBarpid)
+remos.setTopBarPid(topBarpid)
 
 local function reloadSettings()
     darkMode = settings.get("remos.darkMode")

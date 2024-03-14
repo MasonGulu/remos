@@ -90,4 +90,4 @@ tui.run(rootVbox, nil, function(event)
     if event == "backButton" then
         updatePath(fs.combine(path, ".."))
     end
-end)
+end, true)

@@ -112,7 +112,7 @@ end
 updateProccesses()
 
 
-parallel.waitForAny(function() tui.run(hBox) end, function()
+parallel.waitForAny(function() tui.run(hBox, nil, nil, true) end, function()
     while true do
         sleep(1)
         updateProccesses()

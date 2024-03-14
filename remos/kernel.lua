@@ -155,13 +155,14 @@ end
 ---@param process Process
 local function shouldRecieveEvent(e, process)
     local focused = isFocusedEvent(e)
+    local matchesFilter = process.filter == nil or e[1] == process.filter or e[1] == "terminate"
     if (focused and process.focused) or not focused then
         if e[1] == "mouse_click" or e[1] == "mouse_scroll" then
-            return true
+            return matchesFilter
         elseif mouseEventLUT[e[1]] then
-            return process.recievedMouseClick
+            return process.recievedMouseClick and matchesFilter
         end
-        return true
+        return matchesFilter
     end
     return false
 end
@@ -193,6 +194,28 @@ local function terminateProcessChildren(pid)
     for _, cpid in ipairs(processes[pid].children) do
         terminateProcess(cpid)
     end
+end
+
+local bottombarpid, topbarpid
+---@param process Process
+local function updateProcessWindow(process)
+    if process.window then
+        local x, y, w, h = 1, 1, applicationWin.getSize()
+        if process.pid == topbarpid then
+            x, y = 1, 1
+            w, h = termW, 1
+        elseif process.pid == bottombarpid then
+            x, y = 1, termH
+            w, h = termW, 1
+        end
+        process.x, process.y = x, y
+        process.window.reposition(x, y, w, h)
+    end
+end
+
+local function updateApplicationWindow()
+    termW, termH = term.getSize()
+    applicationWin.reposition(1, 2, termW, termH - 2)
 end
 
 local popup, setFocused, cleanupProcess
@@ -325,6 +348,9 @@ end
 ---@param e any[]
 ---@param process Process
 local function tickProcess(e, process)
+    if e[1] == "term_resize" then
+        updateProcessWindow(process)
+    end
     if process.state ~= "alive" then
         -- if process.state == "dead" then
         --     -- this process died naturally
@@ -332,12 +358,12 @@ local function tickProcess(e, process)
         -- end
         return
     end
-    if process.filter == nil or e[1] == process.filter then
-        -- filter matches
-        if shouldRecieveEvent(e, process) then
-            local err = resumeProcess(process, offsetMouse(process, e))
-            process.filter = err
-        end
+    if shouldRecieveEvent(e, process) then
+        local err = resumeProcess(process, offsetMouse(process, e))
+        process.filter = err
+    end
+    if process.pid == menupid and #apps == 0 then
+        setFocused(homepid) -- if there are no apps open, redirect to home
     end
 end
 
@@ -351,6 +377,9 @@ local function runProcesses()
         elseif e[1] == "menuButton" and focusedpid == menupid then
             setFocused(homepid)
         else
+            if e[1] == "term_resize" then
+                updateApplicationWindow()
+            end
             for pid, process in pairs(processes) do
                 tickProcess(e, process)
             end
@@ -482,6 +511,12 @@ _G.remos = {
             end
         end
         return nt
+    end,
+    setTopBarPid = function(pid)
+        topbarpid = pid
+    end,
+    setBottomBarPid = function(pid)
+        bottombarpid = pid
     end
 }
 

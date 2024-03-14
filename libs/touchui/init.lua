@@ -148,7 +148,8 @@ end
 ---@param root Widget
 ---@param allowBack boolean?
 ---@param onEvent fun(...:any)?
-local function run(root, allowBack, onEvent)
+---@param resizeToTerm boolean? resize the root.window to match term's size on term_resize
+local function run(root, allowBack, onEvent, resizeToTerm)
     local dragging = false
     ---@type integer
     local clickStartTime = os.epoch("utc")
@@ -165,6 +166,14 @@ local function run(root, allowBack, onEvent)
         end
         if not e then
             dragging = false -- timeout dragging if no activity
+        elseif e.event == "term_resize" then
+            -- if the root window was resized, then this will recalculate everything
+            if resizeToTerm then
+                root.window.reposition(1, 1, term.getSize())
+            end
+            root:setWindow(root.window)
+        elseif e.event == "term_resize" and resizeToTerm then
+            root:setWindow(root.window)
         elseif e.event == "mouse_click" then
             clickStartTime = os.epoch("utc")
             dragStartX, dragStartY = offsetMouse(root, e.x, e.y)

@@ -10,6 +10,12 @@ local draw = require "draw"
 local genericListWidget__index = setmetatable({}, tui.emptyWidget_meta)
 local genericListWidget_meta = { __index = genericListWidget__index }
 
+function genericListWidget__index:setWindow(win)
+    self.window = win
+    self.w, self.h = win.getSize()
+    self.x, self.y = win.getPosition()
+    self:updateTable()
+end
 
 function genericListWidget__index:draw()
     self.window.setVisible(false)
