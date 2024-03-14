@@ -49,7 +49,16 @@ local defaultIconLarge = assert(loadIcon("icons/default_icon_large.blit"))
 local defaultIconSmall = assert(loadIcon("icons/default_icon_small.blit"))
 local shortcuts = loadShortcuts()
 
+settings.define("remos.home.large_icons", {
+    description = "Use large icons for home screen (3x3 instead of 4x4)",
+    type = "boolean",
+    default = false
+})
+
 local homeSize = 4
+if settings.get("remos.home.large_icons") then
+    homeSize = 3
+end
 
 local gridList = list.gridListWidget(shortcuts, homeSize, homeSize, function(win, x, y, w, h, item, theme)
     local icon
@@ -65,4 +74,12 @@ end, function(index, item)
 end)
 gridList:setWindow(homeWin)
 
-tui.run(gridList, nil, nil, true)
+tui.run(gridList, nil, function(event)
+    if event == "settings_update" then
+        homeSize = 4
+        if settings.get("remos.home.large_icons") then
+            homeSize = 3
+        end
+        gridList:updateGridSize(homeSize, homeSize)
+    end
+end, true)

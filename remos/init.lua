@@ -2,12 +2,12 @@ local tui = require("touchui")
 local container = require("touchui.containers")
 local input = require("touchui.input")
 
-settings.define("remos.darkMode", {
+settings.define("remos.dark_mode", {
     description = "Dark mode",
     type = "boolean",
     default = false
 })
-settings.define("remos.inverseButtons", {
+settings.define("remos.invert_buttons", {
     description = "Dark mode",
     type = "boolean",
     default = false
@@ -55,8 +55,8 @@ remos.setFocused(topBarpid)
 remos.setTopBarPid(topBarpid)
 
 local function reloadSettings()
-    darkMode = settings.get("remos.darkMode")
-    inverseButtons = settings.get("remos.inverseButtons")
+    darkMode = settings.get("remos.dark_mode")
+    inverseButtons = settings.get("remos.invert_buttons")
     if darkMode then
         tui.theme.bg = colors.black
         tui.theme.fg = colors.white

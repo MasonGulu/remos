@@ -20,6 +20,7 @@ local draw = require "draw"
 ---@field totalExeTime integer ms total resumed time
 ---@field lastExeTime integer ms last coroutine.resume took
 ---@field meanExeTime number ms average time / coroutine.resume
+---@field maxExeTime number ms max time this process has taken
 ---@field cyclesAlive integer # of cycles this process has survived
 ---@field state "alive"|"dead"|"errored"|"terminated"
 ---@field children integer[]
@@ -82,6 +83,7 @@ local function addProcess(fun, title, ppid, window)
         lastExeTime = 0,
         cyclesAlive = 0,
         meanExeTime = 0,
+        maxExeTime = 0,
         children = {}
     }
     local parent = processes[ppid]
@@ -218,6 +220,31 @@ local function updateApplicationWindow()
     applicationWin.reposition(1, 2, termW, termH - 2)
 end
 
+settings.define("remos.use_nano_seconds", {
+    description = "Use nanoseconds for statistics (CraftOS-PC)",
+    type = "boolean",
+    default = false
+})
+
+---@diagnostic disable-next-line: undefined-global
+if not periphemu then
+    settings.set("remos.use_nano_seconds", false)
+end
+
+local use_ns = settings.get("remos.use_nano_seconds")
+local epoch_unit = use_ns and "nano" or "utc"
+
+---@param process Process
+---@param startTime integer
+local function updateProcessStats(process, startTime)
+    process.cyclesAlive = process.cyclesAlive + 1
+    ---@diagnostic disable-next-line: param-type-mismatch
+    process.lastExeTime = os.epoch(epoch_unit) - startTime
+    process.totalExeTime = process.totalExeTime + process.lastExeTime
+    process.meanExeTime = process.totalExeTime / process.cyclesAlive
+    process.maxExeTime = math.max(process.maxExeTime, process.lastExeTime)
+end
+
 local popup, setFocused, cleanupProcess
 ---Resume a given process with given arguments, doesn't check filter
 ---@param process Process
@@ -231,12 +258,10 @@ local function resumeProcess(process, ...)
         oldWin = term.redirect(process.window)
     end
     runningpid = process.pid
-    local startTime = os.epoch("utc")
+    ---@diagnostic disable-next-line: param-type-mismatch
+    local startTime = os.epoch(epoch_unit)
     local ok, err = coroutine.resume(process.coro, ...)
-    process.cyclesAlive = process.cyclesAlive + 1
-    process.lastExeTime = os.epoch("utc") - startTime
-    process.totalExeTime = process.totalExeTime + process.lastExeTime
-    process.meanExeTime = process.totalExeTime / process.cyclesAlive
+    updateProcessStats(process, startTime)
     runningpid = 0 -- Kernel running
     local e = { ... }
     if e[1] == "terminate" then

@@ -307,6 +307,15 @@ function gridListWidget__index:scroll(dir, x, y)
     end
 end
 
+---Update the size of pages
+---@param pagew integer
+---@param pageh integer
+function gridListWidget__index:updateGridSize(pagew, pageh)
+    self.pagew = pagew
+    self.pageh = pageh
+    self:updateTable()
+end
+
 ---@generic T : any
 ---@param t T[]
 ---@param pagew integer
