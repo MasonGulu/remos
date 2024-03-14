@@ -240,16 +240,23 @@ end
 local use_ns = settings.get("remos.use_nano_seconds")
 local epoch_unit = use_ns and "nano" or "utc"
 
+
+local function epoch()
+    ---@diagnostic disable-next-line: param-type-mismatch
+    return os.epoch(epoch_unit)
+end
+
 ---@param process Process
 ---@param startTime integer
 local function updateProcessStats(process, startTime)
     process.cyclesAlive = process.cyclesAlive + 1
-    ---@diagnostic disable-next-line: param-type-mismatch
-    process.lastExeTime = os.epoch(epoch_unit) - startTime
+    process.lastExeTime = epoch() - startTime
     process.totalExeTime = process.totalExeTime + process.lastExeTime
     process.meanExeTime = process.totalExeTime / process.cyclesAlive
     process.maxExeTime = math.max(process.maxExeTime, process.lastExeTime)
 end
+
+local kernelStartTime = epoch()
 
 local popup, setFocused, cleanupProcess
 ---Resume a given process with given arguments, doesn't check filter
@@ -264,9 +271,11 @@ local function resumeProcess(process, ...)
         oldWin = term.redirect(process.window)
     end
     runningpid = process.pid
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local startTime = os.epoch(epoch_unit)
+    updateProcessStats(processes[0], kernelStartTime)
+    local startTime = epoch()
     local ok, err = coroutine.resume(process.coro, ...)
+    runningpid = 0
+    kernelStartTime = kernelStartTime + epoch() - startTime
     updateProcessStats(process, startTime)
     runningpid = 0 -- Kernel running
     local e = { ... }
@@ -400,7 +409,9 @@ end
 
 local function runProcesses()
     while true do
+        updateProcessStats(processes[0], kernelStartTime)
         local e = table.pack(os.pullEventRaw())
+        kernelStartTime = epoch()
         if e[1] == "terminate" then
             -- TODO
         elseif e[1] == "back_button" and focusedpid == menupid then

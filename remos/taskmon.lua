@@ -119,7 +119,7 @@ updateProccesses()
 
 parallel.waitForAny(function() tui.run(hBox, nil, nil, true) end, function()
     while true do
-        sleep(1)
+        coroutine.yield()
         updateProccesses()
     end
 end)
