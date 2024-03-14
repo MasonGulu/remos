@@ -193,7 +193,7 @@ end
 
 function sliderWidget__index:scroll(dir, x, y)
     if self:onSlider(x, y) then
-        self:updateSlider(self.sliderX + math.ceil(self.value * (self.sliderW - 1)) - dir)
+        self:updateSlider(self.sliderX + math.max(math.ceil(self.value * self.sliderW + 1), 2) - dir)
         return true
     end
 end

@@ -19,4 +19,4 @@ vbox:addWidget(row2, 5)
 local row3 = input.inputWidget("text")
 vbox:addWidget(row3, 5)
 
-tui.run(vbox, true)
+tui.run(vbox, true, nil, true)

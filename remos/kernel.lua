@@ -520,6 +520,37 @@ _G.remos = {
     end
 }
 
+local oldfsopen = fs.open
+local oldfsexists = fs.exists
+local oldisDir = fs.isDir
+
+_G.fs.exists = function(path)
+    logError("exists(%s)", path)
+    local newpath = fs.combine("libs", path)
+    return oldfsexists(path) or oldfsexists(newpath)
+end
+
+_G.fs.open = function(path, mode)
+    local handle, reason = oldfsopen(path, mode)
+    if handle then
+        return handle, reason
+    end
+    if mode:sub(1, 1) == "r" then
+        logError("open(%s, %s)", path, mode)
+        local newpath = fs.combine("libs", path)
+
+        if oldfsexists(newpath) then
+            return fs.open(newpath, mode)
+        end
+    end
+    return handle, reason
+end
+
+_G.fs.isDir = function(path)
+    local newpath = fs.combine("libs", path)
+    return oldisDir(path) or oldisDir(newpath)
+end
+
 addProcess(assert(loadfile("remos/init.lua", "t", _ENV)), "INIT", 0)
 
 os.queueEvent("REMOS BOOT")
