@@ -563,6 +563,21 @@ _G.remos = {
         f.close()
         return textutils.unserialise(t) --[[@as table?]], "Failed to unserialize"
     end,
+    ---Write a table to a file
+    ---@param fn string
+    ---@param t table
+    ---@return boolean?
+    ---@return string?
+    saveTable = function(fn, t)
+        local st = textutils.serialise(t)
+        local f, err = fs.open(fn, "w")
+        if not f then
+            return nil, err
+        end
+        f.write(st)
+        f.close()
+        return true
+    end,
     deepClone = function(t)
         local nt = {}
         for k, v in pairs(t) do

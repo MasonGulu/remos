@@ -253,6 +253,7 @@ function inputWidget__index:char(ch)
     end
 end
 
+---@param t string
 function inputWidget__index:setValue(t)
     self.value = t
     self:updateScroll(0)
@@ -312,9 +313,54 @@ local function inputWidget(label, filter)
     return self
 end
 
+
+---@class FileWidget : Widget
+local fileWidget__index = setmetatable({}, tui.emptyWidget_meta)
+local fileWidget_meta = { __index = fileWidget__index }
+
+local browseString = "[Browse...]"
+function fileWidget__index:draw()
+    self.window.setVisible(false)
+    draw.set_col(self.theme.fg, self.theme.bg, self.window)
+    self.window.clear()
+
+    draw.text(1, 1, self.label, self.window)
+    draw.text(self.w - #browseString, 1, browseString, self.window)
+
+    if self.selected then
+        draw.text(1, 2, self.selected, self.window)
+    end
+
+    self.window.setVisible(true)
+end
+
+function fileWidget__index:shortPress(button, x, y)
+    if tui.withinSquare(x, y, self.w - #browseString, 1, self.w, 1) then
+        self.selected = require("touchui.popups").filePopup(("Picking %s"):format(self.label), nil, false, self.write,
+            self.allowDirs)
+        return true
+    end
+end
+
+---Create a file selector widget
+---@param label string
+---@param write boolean?
+---@param allowDirs boolean?
+---@return FileWidget
+local function fileWidget(label, write, allowDirs)
+    ---@class FileWidget
+    ---@field selected string?
+    local self = setmetatable(tui.emptyWidget(), fileWidget_meta)
+    self.write = write
+    self.allowDirs = allowDirs
+    self.label = label
+    return self
+end
+
 return {
     toggleWidget = toggleWidget,
     buttonWidget = buttonWidget,
     sliderWidget = sliderWidget,
-    inputWidget = inputWidget
+    inputWidget = inputWidget,
+    fileWidget = fileWidget
 }

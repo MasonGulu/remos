@@ -29,6 +29,11 @@ if periphemu then
     toggleSetting("Use ns time units*", "remos.use_nano_seconds")
 end
 
+settingVbox:addWidget(input.buttonWidget("Add Shortcut", function(self)
+    os.queueEvent("add_home_shortcut")
+    os.queueEvent("home_button")
+end), 3)
+
 local saveButton = input.buttonWidget("Save", function(self)
     settings.save()
     os.queueEvent("settings_update")

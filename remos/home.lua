@@ -3,6 +3,7 @@ local container = require("touchui.containers")
 local input = require("touchui.input")
 local list = require("touchui.lists")
 local draw = require("draw")
+local popups = require("touchui.popups")
 local homeWin = window.create(term.current(), 1, 1, term.getSize())
 
 
@@ -32,6 +33,14 @@ local function loadIcon(fn)
     return icon --[[@as BLIT]]
 end
 
+local function saveShortcuts(shortcuts)
+    for i, v in ipairs(shortcuts) do
+        v.iconSmall = nil
+        v.iconLarge = nil
+    end
+    assert(remos.saveTable("config/home_apps.table", shortcuts))
+end
+
 local function loadShortcuts()
     local shortcuts = assert(remos.loadTable("config/home_apps.table"))
     for i, v in ipairs(shortcuts) do
@@ -45,9 +54,67 @@ local function loadShortcuts()
     return shortcuts
 end
 
+local shortcuts = loadShortcuts()
+
+---Update/create/delete a shortcut
+---@param index integer
+---@param label string?
+---@param path string?
+---@param iconSmallFile string?
+---@param iconLargeFile string?
+local function shortcutMenu(index, label, path, iconSmallFile, iconLargeFile)
+    local rootWin = window.create(term.current(), 1, 1, term.getSize())
+    local rootVbox = container.vBox()
+    rootVbox:setWindow(rootWin)
+
+    local labelInput = input.inputWidget("Label")
+    rootVbox:addWidget(labelInput, 2)
+    labelInput:setValue(label or "")
+
+    local pathPicker = input.fileWidget("Path")
+    pathPicker.selected = path
+    rootVbox:addWidget(pathPicker, 2)
+
+    local iconSmallFilePicker = input.fileWidget("Small Icon")
+    iconSmallFilePicker.selected = iconSmallFile
+    rootVbox:addWidget(iconSmallFilePicker, 2)
+
+    local iconLargeFilePicker = input.fileWidget("Large Icon")
+    iconLargeFilePicker.selected = iconLargeFile
+    rootVbox:addWidget(iconLargeFilePicker, 2)
+
+    local deleteButton = input.buttonWidget("Delete", function(self)
+        table.remove(shortcuts, index)
+        rootVbox.exit = true
+    end)
+    rootVbox:addWidget(deleteButton)
+    local cancelButton = input.buttonWidget("Cancel", function(self)
+        rootVbox.exit = true
+    end)
+    rootVbox:addWidget(cancelButton)
+    local saveButton = input.buttonWidget("Save", function(self)
+        if type(labelInput.value) == "string" and type(pathPicker.selected) == "string" then
+            shortcuts[index] = {
+                label = labelInput.value,
+                path = pathPicker.selected,
+                iconSmallFile = iconSmallFilePicker.selected,
+                iconLargeFile = iconLargeFilePicker.selected
+            }
+        else
+            remos.addAppFile("remos/popup.lua", "Error!",
+                "Label and Path are both required to be filled to save this shortcut!")
+        end
+        saveShortcuts(shortcuts)
+        shortcuts = loadShortcuts()
+        rootVbox.exit = true
+    end)
+    rootVbox:addWidget(saveButton)
+
+    tui.run(rootVbox, nil, nil, true)
+end
+
 local defaultIconLarge = assert(loadIcon("icons/default_icon_large.blit"))
 local defaultIconSmall = assert(loadIcon("icons/default_icon_small.blit"))
-local shortcuts = loadShortcuts()
 
 settings.define("remos.home.large_icons", {
     description = "Use large icons for home screen (3x3 instead of 4x4)",
@@ -71,6 +138,8 @@ local gridList = list.gridListWidget(shortcuts, homeSize, homeSize, function(win
     draw.text(x, y + h - 1, item.label, win)
 end, function(index, item)
     remos.addAppFile(item.path)
+end, function(index, item)
+    shortcutMenu(index, item.label, item.path, item.iconSmallFile, item.iconLargeFile)
 end)
 gridList:setWindow(homeWin)
 
@@ -81,5 +150,7 @@ tui.run(gridList, nil, function(event)
             homeSize = 3
         end
         gridList:updateGridSize(homeSize, homeSize)
+    elseif event == "add_home_shortcut" then
+        shortcutMenu(#shortcuts + 1)
     end
 end, true)

@@ -170,7 +170,7 @@ local function filePopup(label, path, mandatory, write, allowDirs)
 
     updatePath(path)
 
-    tui.run(rootVbox, nil, function(event)
+    tui.run(rootVbox, not mandatory, function(event)
         if event == "back_button" then
             if mandatory and (path == "" or path == "/") then
                 -- already at the root
