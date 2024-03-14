@@ -21,15 +21,15 @@ local topBarWin = window.create(term.current(), 1, 1, termW, 1)
 local bottomBarWin = window.create(term.current(), 1, termH, termW, 1)
 
 local bottomBarHBox = container.hBox()
-local menuButton, homeButton, backButton
-menuButton = input.buttonWidget("\127", function()
-    os.queueEvent("menuButton")
+local menu_button, home_button, back_button
+menu_button = input.buttonWidget("\127", function()
+    os.queueEvent("menu_button")
 end, function() end, false)
-homeButton = input.buttonWidget("\186", function()
-    os.queueEvent("homeButton")
+home_button = input.buttonWidget("\186", function()
+    os.queueEvent("home_button")
 end, function() end, false)
-backButton = input.buttonWidget("<", function()
-    os.queueEvent("backButton")
+back_button = input.buttonWidget("<", function()
+    os.queueEvent("back_button")
 end, function() end, false)
 bottomBarHBox:setWindow(bottomBarWin)
 bottomBarHBox:setTheme(barTheme)
@@ -76,13 +76,13 @@ local function reloadSettings()
     }
     bottomBarHBox:clearWidgets()
     if inverseButtons then
-        bottomBarHBox:addWidget(menuButton)
-        bottomBarHBox:addWidget(homeButton)
-        bottomBarHBox:addWidget(backButton)
+        bottomBarHBox:addWidget(menu_button)
+        bottomBarHBox:addWidget(home_button)
+        bottomBarHBox:addWidget(back_button)
     else
-        bottomBarHBox:addWidget(backButton)
-        bottomBarHBox:addWidget(homeButton)
-        bottomBarHBox:addWidget(menuButton)
+        bottomBarHBox:addWidget(back_button)
+        bottomBarHBox:addWidget(home_button)
+        bottomBarHBox:addWidget(menu_button)
     end
     bottomBarHBox:setTheme(barTheme)
     topBarHBox:setTheme(barTheme)
@@ -98,9 +98,9 @@ remos.setHomePid(homepid)
 local timer = os.startTimer(1)
 while true do
     local e, id = os.pullEvent()
-    if e == "menuButton" then
+    if e == "menu_button" then
         remos.setFocused(menupid)
-    elseif e == "homeButton" then
+    elseif e == "home_button" then
         -- remos.addAppFile("rom/programs/shell.lua")
         -- remos.addAppFile("browser.lua")
         remos.setFocused(homepid)

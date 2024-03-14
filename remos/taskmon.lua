@@ -27,7 +27,7 @@ local sortDir = true
 addField(-20, "Title", "title", "%-20s")
 addField(5, "pid", "pid", "%5d")
 addField(5, "ppid", "ppid", "%5d")
-addField(11, "State", "state", "%11s")
+-- addField(11, "State", "state", "%11s")
 local usens = settings.get("remos.use_nano_seconds", false)
 local timewidth = usens and 15 or 9
 local timeformat = ("%%%dd"):format(timewidth)

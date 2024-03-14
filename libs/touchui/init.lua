@@ -204,7 +204,7 @@ local function run(root, allowBack, onEvent, resizeToTerm)
                     root:shortPress(e.button, offsetMouse(root, e.x, e.y))
                 end
             end
-        elseif e.event == "backButton" and allowBack then
+        elseif e.event == "back_button" and allowBack then
             return
         elseif e.event == "mouse_scroll" then
             root:scroll(e.dir, offsetMouse(root, e.x, e.y))

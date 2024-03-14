@@ -117,7 +117,7 @@ local focusedEventLUT = {
     "char",
     "mouse_scroll",
     "key_up",
-    "backButton",
+    "back_button",
 }
 for k, v in ipairs(focusedEventLUT) do focusedEventLUT[v] = true end
 ---Tell if an event requires the process being focused
@@ -151,6 +151,10 @@ local function offsetMouse(process, e)
     return table.unpack(t, 1, t.n)
 end
 
+local function mouseWithinAppSpace(x, y)
+    return y < termH and y > 1
+end
+
 ---Determine whether a given process has received the mouse_click event
 ---If they haven't, then they should not be sent
 ---@param e any[]
@@ -160,9 +164,9 @@ local function shouldRecieveEvent(e, process)
     local matchesFilter = process.filter == nil or e[1] == process.filter or e[1] == "terminate"
     if (focused and process.focused) or not focused then
         if e[1] == "mouse_click" or e[1] == "mouse_scroll" then
-            return matchesFilter
+            return matchesFilter and (not process.app or mouseWithinAppSpace(e[3], e[4]))
         elseif mouseEventLUT[e[1]] then
-            return process.recievedMouseClick and matchesFilter
+            return process.recievedMouseClick and matchesFilter and (not process.app or mouseWithinAppSpace(e[3], e[4]))
         end
         return matchesFilter
     end
@@ -397,9 +401,9 @@ local function runProcesses()
         local e = table.pack(os.pullEventRaw())
         if e[1] == "terminate" then
             -- TODO
-        elseif e[1] == "backButton" and focusedpid == menupid then
+        elseif e[1] == "back_button" and focusedpid == menupid then
             setFocused(homepid)
-        elseif e[1] == "menuButton" and focusedpid == menupid then
+        elseif e[1] == "menu_button" and focusedpid == menupid then
             setFocused(homepid)
         else
             if e[1] == "term_resize" then
@@ -550,7 +554,6 @@ local oldfsexists = fs.exists
 local oldisDir = fs.isDir
 
 _G.fs.exists = function(path)
-    logError("exists(%s)", path)
     local newpath = fs.combine("libs", path)
     return oldfsexists(path) or oldfsexists(newpath)
 end
@@ -561,7 +564,6 @@ _G.fs.open = function(path, mode)
         return handle, reason
     end
     if mode:sub(1, 1) == "r" then
-        logError("open(%s, %s)", path, mode)
         local newpath = fs.combine("libs", path)
 
         if oldfsexists(newpath) then
