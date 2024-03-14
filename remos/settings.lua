@@ -24,6 +24,10 @@ end
 toggleSetting("Dark Mode", "remos.dark_mode")
 toggleSetting("Inverse Buttons", "remos.invert_buttons")
 toggleSetting("Large Home Icons", "remos.home.large_icons")
+---@diagnostic disable-next-line: undefined-global
+if periphemu then
+    toggleSetting("Use ns time units*", "remos.use_nano_seconds")
+end
 
 local saveButton = input.buttonWidget("Save", function(self)
     settings.save()

@@ -31,7 +31,7 @@ addField(5, "ppid", "ppid", "%5d")
 local usens = settings.get("remos.use_nano_seconds", false)
 local timewidth = usens and 15 or 9
 local timeformat = ("%%%dd"):format(timewidth)
-addField(timewidth, ("Mean %s"):format(usens and "ns" or "ms"), "meanExeTime", "%.3f", true)
+addField(timewidth, ("Mean %s"):format(usens and "ns" or "ms"), "meanExeTime", usens and "%.1f" or "%.3f", true)
 addField(timewidth, ("Last %s"):format(usens and "ns" or "ms"), "lastExeTime", timeformat)
 addField(timewidth, ("Total %s"):format(usens and "ns" or "ms"), "totalExeTime", timeformat)
 addField(timewidth, ("Max %s"):format(usens and "ns" or "ms"), "maxExeTime", timeformat)
@@ -119,7 +119,7 @@ updateProccesses()
 
 parallel.waitForAny(function() tui.run(hBox, nil, nil, true) end, function()
     while true do
-        coroutine.yield()
+        sleep(1)
         updateProccesses()
     end
 end)
