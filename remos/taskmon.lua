@@ -35,6 +35,7 @@ addField(timewidth, ("Mean %s"):format(usens and "ns" or "ms"), "meanExeTime", "
 addField(timewidth, ("Last %s"):format(usens and "ns" or "ms"), "lastExeTime", timeformat)
 addField(timewidth, ("Total %s"):format(usens and "ns" or "ms"), "totalExeTime", timeformat)
 addField(timewidth, ("Max %s"):format(usens and "ns" or "ms"), "maxExeTime", timeformat)
+addField(20, "File", "file")
 -- addField(7, "Cycles", "cyclesAlive", "%7d")
 -- addField(7, "Focused", "focused")
 -- addField(10, "Filter", "filter")

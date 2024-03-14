@@ -9,14 +9,20 @@ local draw = require("draw")
 
 remos.setTitle("Browser")
 
-local fileOptions = {
-    "Run",
-    "Edit"
-}
 
-local path = ""
+local path = ({ ... })[1] or ""
 
 local function fileMenu(filePath)
+    local fileOptions = {
+        "Delete",
+        "Move",
+        "Copy"
+    }
+    if not fs.isDir(filePath) then
+        table.insert(fileOptions, 1, "Edit")
+        table.insert(fileOptions, 1, "Run")
+    end
+
     local label = "File Options"
     local attributes = fs.attributes(filePath)
     local attributeVbox = container.vBox()
@@ -33,60 +39,34 @@ local function fileMenu(filePath)
             remos.addAppFile(filePath)
         elseif item == "Edit" then
             remos.addAppFile("/rom/programs/edit.lua", filePath)
+        elseif item == "Delete" and popups.confirmationPopup(("Delete %s?"):format(filePath), "Are you sure you want to delete this file?") then
+            fs.delete(filePath)
+        elseif item == "Move" then
+            local to = popups.filePopup(("Move %s to?"):format(filePath), nil, false, true, true)
+            if to then
+                local from = filePath
+                if not fs.isDir(from) and fs.isDir(to) then
+                    -- moving a file to a folder, move it *into* the folder instead
+                    to = fs.combine(to, fs.getName(filePath))
+                end
+                fs.move(from, to)
+            end
+        elseif item == "Copy" then
+            local to = popups.filePopup(("Copy %s to?"):format(filePath), nil, false, true, true)
+            if to then
+                local from = filePath
+                if not fs.isDir(from) and fs.isDir(to) then
+                    -- moving a file to a folder, move it *into* the folder instead
+                    to = fs.combine(to, fs.getName(filePath))
+                end
+                fs.copy(from, to)
+            end
         end
     end
 end
 
 while true do
-    local file = popups.filePopup("Browser", path, true) --[[@as string]]
+    local file = popups.filePopup("Browser", path, true, nil, true) --[[@as string]]
     fileMenu(file)
     path = file:sub(1, -(#fs.getName(file) + 1))
 end
-
--- local fileList = list.listWidget(fs.list(path), 1, function(win, x, y, w, h, item, theme)
---     draw.set_col(theme.fg, theme.bg, win)
---     if fs.isDir(fs.combine(path, item)) then
---         draw.set_col(theme.highlight, nil, win)
---     end
---     draw.text(x, y, item, win)
--- end, function(index, item)
---     local filePath = fs.combine(path, item)
---     if fs.isDir(filePath) then
---         updatePath(filePath)
---     else
---         fileMenu(filePath)
---     end
--- end, function(index, item)
---     local filePath = fs.combine(path, item)
---     fileMenu(filePath)
--- end)
--- local fileBox = container.framedBox(fileList)
--- rootVbox:addWidget(fileBox)
-
--- function updatePath(newPath)
---     if not fs.exists(newPath) then
---         return
---     end
---     path = newPath
---     local files = fs.list(path)
---     for i, v in ipairs(files) do
---         if fs.isDir(fs.combine(path, v)) then
---             files[i] = v .. "/"
---         end
---     end
---     if path == "" then path = "/" end
---     if path ~= "/" then
---         table.insert(files, 1, "..")
---     end
---     fileList:setTable(files)
---     pathText:updateText(path)
---     remos.setTitle("Browser - " .. path)
--- end
-
--- updatePath(path)
-
--- tui.run(rootVbox, nil, function(event)
---     if event == "back_button" then
---         updatePath(fs.combine(path, ".."))
---     end
--- end, true)

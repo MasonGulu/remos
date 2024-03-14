@@ -67,8 +67,8 @@ local function reloadSettings()
         tui.theme.bg = colors.white
         tui.theme.fg = colors.black
         tui.theme.highlight = colors.blue
-        tui.theme.inputbg = colors.gray
-        tui.theme.inputfg = colors.white
+        tui.theme.inputbg = colors.lightGray
+        tui.theme.inputfg = colors.black
     end
     barTheme = {
         fg = tui.theme.bg,

@@ -15,6 +15,7 @@ local draw = require "draw"
 ---@field y integer where on screen this process is located, for adjusting mouse events
 ---@field focused boolean? whether this process should recieve mouse/keyboard events
 ---@field app boolean?
+---@field file string Original file this process was started from, inherits from parent if function
 ---@field recievedMouseClick boolean?
 ---@field terminateOnFocusLoss boolean?
 ---@field totalExeTime integer ms total resumed time
@@ -84,7 +85,8 @@ local function addProcess(fun, title, ppid, window)
         cyclesAlive = 0,
         meanExeTime = 0,
         maxExeTime = 0,
-        children = {}
+        children = {},
+        file = processes[ppid].file
     }
     local parent = processes[ppid]
     if parent then
@@ -421,16 +423,18 @@ end
 
 ---@param fn string
 ---@param ppid integer
+---@param env table?
 ---@return integer?
 ---@return string?
-local addAppFile = function(fn, ppid, ...)
-    local func, err = loadfile(fn, "t", setmetatable({}, { __index = _ENV }))
+local addAppFile = function(fn, ppid, env, ...)
+    local func, err = loadfile(fn, "t", env or setmetatable({}, { __index = _ENV }))
     if not func then
         return nil, err
     end
     local id = addApp(func, fn, ppid)
     resumeProcess(processes[id], ...)
     setFocused(id)
+    processes[id].file = fn
     return id
 end
 
@@ -439,7 +443,7 @@ end
 ---@return integer?
 ---@return string?
 local curAddAppFile = function(fn, ...)
-    return addAppFile(fn, runningpid, ...)
+    return addAppFile(fn, runningpid, nil, ...)
 end
 
 ---Show a popup
@@ -447,7 +451,7 @@ end
 ---@param body string
 ---@return integer? pid
 function popup(title, body)
-    local pid = addAppFile("remos/popup.lua", runningpid, title, body)
+    local pid = addAppFile("remos/popup.lua", runningpid, nil, title, body)
     return pid
 end
 
@@ -455,6 +459,9 @@ end
 ---@param pid integer
 ---@param title string
 local function setProcessTitle(pid, title)
+    if not processes[pid] then
+        return
+    end
     processes[pid].title = title
 end
 
@@ -477,6 +484,12 @@ _G.remos = {
     addProcess = function(fn, title, win)
         return addProcess(fn, title, runningpid, win)
     end,
+    ---If this program was started from a file, get the name of that file
+    ---@return string
+    getRunningProgram = function()
+        logError(debug.traceback(processes[runningpid].file))
+        return processes[runningpid].file
+    end,
     ---Create a new foreground process
     ---@param fn function
     ---@param title string
@@ -485,6 +498,14 @@ _G.remos = {
         return addApp(fn, title, runningpid)
     end,
     addAppFile = curAddAppFile,
+    ---Create a new foreground app processs
+    ---@param fn string
+    ---@param env table
+    ---@param ... any
+    ---@return integer?
+    addAppFileEnv = function(fn, env, ...)
+        return addAppFile(fn, runningpid, env, ...)
+    end,
     setFocused = setFocused,
     cleanupProcess = cleanupProcess,
     removeFromTable = removeFromArray,
@@ -494,10 +515,11 @@ _G.remos = {
     _processes = processes,
     pid = 0, -- variables to get information about the current process
     ppid = 0,
-    ---Set the title of the current process
+    ---Set the title of a process
     ---@param title string
-    setTitle = function(title)
-        setProcessTitle(runningpid, title)
+    ---@param pid integer? defaults to current
+    setTitle = function(title, pid)
+        setProcessTitle(pid or runningpid, title)
     end,
     terminateOnFocusLoss = function()
         terminateOnFocusLoss(runningpid)
@@ -549,6 +571,7 @@ _G.remos = {
     end
 }
 
+--- Some monstrosity to allow loading libraries with require from /rom with any environment.
 local oldfsopen = fs.open
 local oldfsexists = fs.exists
 local oldisDir = fs.isDir
@@ -574,11 +597,31 @@ _G.fs.open = function(path, mode)
 end
 
 _G.fs.isDir = function(path)
+    if oldfsexists(path) then
+        return oldisDir(path)
+    end
     local newpath = fs.combine("libs", path)
-    return oldisDir(path) or oldisDir(newpath)
+    return oldisDir(newpath)
 end
 
-addProcess(assert(loadfile("remos/init.lua", "t", _ENV)), "INIT", 0)
+processes[0] = {
+    pid = 0,
+    ppid = 0,
+    children = {},
+    coro = coroutine.create(function() os.pullEvent("do_not_ever_queue_this_event_thanks") end),
+    cyclesAlive = 0,
+    file = "/remos/kernel.lua",
+    title = "KERNEL",
+    lastExeTime = 0,
+    maxExeTime = 0,
+    meanExeTime = 0,
+    state = "alive",
+    totalExeTime = 0,
+    x = 1,
+    y = 1
+}
+local initpid = addProcess(assert(loadfile("remos/init.lua", "t", _ENV)), "INIT", 0)
+processes[initpid].file = "/remos/init.lua"
 
 os.queueEvent("REMOS BOOT")
 runProcesses()

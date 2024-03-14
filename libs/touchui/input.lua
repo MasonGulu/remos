@@ -253,6 +253,11 @@ function inputWidget__index:char(ch)
     end
 end
 
+function inputWidget__index:setValue(t)
+    self.value = t
+    self:updateScroll(0)
+end
+
 function inputWidget__index:key(code)
     if self.focused then
         if code == keys.backspace then
@@ -273,7 +278,7 @@ end
 
 function inputWidget__index:draw()
     local leftX = 3 + #self.label
-    local fieldW = self.w - 2 - #self.label
+    local fieldW = self.w - 3 - #self.label
     self.window.setVisible(false)
     draw.set_col(self.theme.fg, self.theme.bg, self.window)
     self.window.clear()
