@@ -209,15 +209,21 @@ local bottombarpid, topbarpid
 local function updateProcessWindow(process)
     if process.window then
         local x, y, w, h = 1, 1, applicationWin.getSize()
+        local systemProcess
         if process.pid == topbarpid then
             x, y = 1, 1
             w, h = termW, 1
+            systemProcess = true
         elseif process.pid == bottombarpid then
             x, y = 1, termH
             w, h = termW, 1
+            systemProcess = true
         end
         process.x, process.y = x, y
         process.window.reposition(x, y, w, h)
+        if not systemProcess then
+            process.y = 2
+        end
     end
 end
 

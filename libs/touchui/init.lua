@@ -172,8 +172,6 @@ local function run(root, allowBack, onEvent, resizeToTerm)
                 root.window.reposition(1, 1, term.getSize())
             end
             root:setWindow(root.window)
-        elseif e.event == "term_resize" and resizeToTerm then
-            root:setWindow(root.window)
         elseif e.event == "mouse_click" then
             clickStartTime = os.epoch("utc")
             dragStartX, dragStartY = offsetMouse(root, e.x, e.y)

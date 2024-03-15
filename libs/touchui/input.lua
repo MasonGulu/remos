@@ -256,7 +256,7 @@ end
 ---@param t string
 function inputWidget__index:setValue(t)
     self.value = t
-    self:updateScroll(0)
+    self:updateScroll(#t)
 end
 
 function inputWidget__index:key(code)
