@@ -55,6 +55,7 @@ local function loadShortcuts()
 end
 
 local shortcuts = loadShortcuts()
+local gridList
 
 ---Update/create/delete a shortcut
 ---@param index integer
@@ -85,6 +86,9 @@ local function shortcutMenu(index, label, path, iconSmallFile, iconLargeFile)
 
     local deleteButton = input.buttonWidget("Delete", function(self)
         table.remove(shortcuts, index)
+        saveShortcuts(shortcuts)
+        shortcuts = loadShortcuts()
+        gridList:setTable(shortcuts)
         rootVbox.exit = true
     end)
     rootVbox:addWidget(deleteButton)
@@ -106,11 +110,12 @@ local function shortcutMenu(index, label, path, iconSmallFile, iconLargeFile)
         end
         saveShortcuts(shortcuts)
         shortcuts = loadShortcuts()
+        gridList:setTable(shortcuts)
         rootVbox.exit = true
     end)
     rootVbox:addWidget(saveButton)
 
-    tui.run(rootVbox, nil, nil, true)
+    tui.run(rootVbox, true, nil, true)
 end
 
 local defaultIconLarge = assert(loadIcon("icons/default_icon_large.blit"))
@@ -127,7 +132,7 @@ if settings.get("remos.home.large_icons") then
     homeSize = 3
 end
 
-local gridList = list.gridListWidget(shortcuts, homeSize, homeSize, function(win, x, y, w, h, item, theme)
+gridList = list.gridListWidget(shortcuts, homeSize, homeSize, function(win, x, y, w, h, item, theme)
     local icon
     if homeSize == 3 then
         icon = item.iconLarge or defaultIconLarge

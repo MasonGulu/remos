@@ -120,6 +120,7 @@ local focusedEventLUT = {
     "mouse_scroll",
     "key_up",
     "back_button",
+    "file_transfer"
 }
 for k, v in ipairs(focusedEventLUT) do focusedEventLUT[v] = true end
 ---Tell if an event requires the process being focused
@@ -449,9 +450,9 @@ local addAppFile = function(fn, ppid, env, ...)
         return nil, err
     end
     local id = addApp(func, fn, ppid)
-    resumeProcess(processes[id], ...)
     setFocused(id)
     processes[id].file = fn
+    resumeProcess(processes[id], ...)
     return id
 end
 

@@ -23,6 +23,7 @@ local files = {
         ["menu.lua"] = fromRepository "remos/menu.lua",
         ["popup.lua"] = fromRepository "remos/popup.lua",
         ["taskmon.lua"] = fromRepository "remos/taskmon.lua",
+        ["settings.lua"] = fromRepository "remos/settings.lua"
     },
     libs = {
         touchui = {
