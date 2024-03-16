@@ -7,7 +7,6 @@ local rootWin = window.create(term.current(), 1, 1, w, h)
 
 local title = args[1] or "Default Message"
 local body = args[2] --or ""
-tui.log(body)
 
 local vbox = containers.vBox()
 local rootBox = containers.framedBox(vbox)
