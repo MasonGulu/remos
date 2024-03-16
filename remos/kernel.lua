@@ -1,5 +1,6 @@
 package.path = package.path .. ";/libs/?.lua/;/libs/?/init.lua"
 
+local expect = require("cc.expect").expect
 local termW, termH = term.getSize()
 local draw = require "draw"
 
@@ -182,6 +183,7 @@ end
 ---@param v T
 ---@return boolean success
 local function removeFromArray(t, v)
+    expect(1, t, "table")
     for i, v2 in pairs(t) do
         if v == v2 then
             table.remove(t, i)
@@ -196,7 +198,10 @@ local focusedfg, focusedbg = colors.white, colors.black
 local cursorBlink = false
 
 local terminateProcess
+---Terminate the children of a process
+---@param pid number
 local function terminateProcessChildren(pid)
+    expect(1, pid, "number")
     if not processes[pid] then
         return
     end
@@ -327,6 +332,7 @@ end
 ---Terminate a process
 ---@param pid integer
 function terminateProcess(pid)
+    expect(1, pid, "number")
     local process = processes[pid]
     if process and process.state == "alive" then
         resumeProcess(process, "terminate")
@@ -337,6 +343,7 @@ end
 ---Cleanup the information associated with a given process
 ---@param pid integer
 function cleanupProcess(pid)
+    expect(1, pid, "number")
     local process = processes[pid]
     if process then
         terminateProcess(pid)
@@ -369,6 +376,7 @@ end
 ---Set a process as the focused process
 ---@param pid integer?
 function setFocused(pid)
+    expect(1, pid, "number", "nil")
     if not pid then
         clearFocused()
     end
@@ -461,6 +469,7 @@ end
 ---@return integer?
 ---@return string?
 local curAddAppFile = function(fn, ...)
+    expect(1, fn, "string")
     return addAppFile(fn, runningpid, nil, ...)
 end
 
@@ -469,6 +478,8 @@ end
 ---@param body string
 ---@return integer? pid
 function popup(title, body)
+    expect(1, title, "string")
+    expect(2, body, "string")
     local pid = addAppFile("remos/popup.lua", runningpid, nil, title, body)
     return pid
 end
@@ -497,15 +508,15 @@ _G.remos = {
     ---Create a new background process
     ---@param fn function
     ---@param title string
-    ---@param win Window?
     ---@return integer pid
-    addProcess = function(fn, title, win)
-        return addProcess(fn, title, runningpid, win)
+    addProcess = function(fn, title)
+        expect(1, fn, "function")
+        expect(2, title, "string")
+        return addProcess(fn, title, runningpid)
     end,
     ---If this program was started from a file, get the name of that file
     ---@return string
     getRunningProgram = function()
-        logError(debug.traceback(processes[runningpid].file))
         return processes[runningpid].file
     end,
     ---Create a new foreground process
@@ -513,6 +524,8 @@ _G.remos = {
     ---@param title string
     ---@return integer pid
     addApp = function(fn, title)
+        expect(1, fn, "function")
+        expect(2, title, "string")
         return addApp(fn, title, runningpid)
     end,
     addAppFile = curAddAppFile,
@@ -522,43 +535,39 @@ _G.remos = {
     ---@param ... any
     ---@return integer?
     addAppFileEnv = function(fn, env, ...)
+        expect(1, fn, "function")
+        expect(2, env, "table")
         return addAppFile(fn, runningpid, env, ...)
     end,
     setFocused = setFocused,
     cleanupProcess = cleanupProcess,
-    removeFromTable = removeFromArray,
     terminateProcess = terminateProcess,
-    popup = popup,
-    _apps = apps,
-    _processes = processes,
-    pid = 0, -- variables to get information about the current process
-    ppid = 0,
     ---Set the title of a process
     ---@param title string
     ---@param pid integer? defaults to current
     setTitle = function(title, pid)
+        expect(1, title, "string")
+        expect(2, pid, "number", "nil")
         setProcessTitle(pid or runningpid, title)
     end,
+    ---Set this app to terminate when it loses focus.
     terminateOnFocusLoss = function()
         terminateOnFocusLoss(runningpid)
     end,
-    ---Set the pid of the which process is "home"
-    ---@param pid integer
-    setHomePid = function(pid)
-        removeFromArray(apps, processes[pid])
-        homepid = pid
-    end,
-    ---Set the pid of the which process is "menu"
-    ---@param pid integer
-    setMenuPid = function(pid)
-        removeFromArray(apps, processes[pid])
-        menupid = pid
-    end,
+    popup = popup,
+
+    --- variables to get information about the current process
+    pid = 0,
+    ppid = 0,
+
+    ---- Random utilities
+
     ---Load a table from a file
     ---@param fn string
     ---@return table?
     ---@return string?
     loadTable = function(fn)
+        expect(1, fn, "string")
         local f, err = fs.open(fn, "r")
         if not f then
             return nil, err
@@ -576,6 +585,8 @@ _G.remos = {
     ---@return boolean?
     ---@return string?
     saveTable = function(fn, t)
+        expect(1, fn, "string")
+        expect(2, t, "table")
         local st = textutils.serialise(t)
         local f, err = fs.open(fn, "w")
         if not f then
@@ -585,7 +596,11 @@ _G.remos = {
         f.close()
         return true
     end,
+    ---Create a deep clone of a table
+    ---@param t table
+    ---@return table
     deepClone = function(t)
+        expect(1, t, "table")
         local nt = {}
         for k, v in pairs(t) do
             if type(v) == "table" then
@@ -596,12 +611,38 @@ _G.remos = {
         end
         return nt
     end,
-    setTopBarPid = function(pid)
+    removeFromTable = removeFromArray,
+
+    ---- Internal API
+
+    _apps = apps,
+    _processes = processes,
+    ---Create a new background process
+    ---@param fn function
+    ---@param title string
+    ---@param win Window?
+    ---@return integer pid
+    _addProcess = function(fn, title, win)
+        return addProcess(fn, title, runningpid, win)
+    end,
+    ---Set the pid of the which process is "home"
+    ---@param pid integer
+    _setHomePid = function(pid)
+        removeFromArray(apps, processes[pid])
+        homepid = pid
+    end,
+    ---Set the pid of the which process is "menu"
+    ---@param pid integer
+    _setMenuPid = function(pid)
+        removeFromArray(apps, processes[pid])
+        menupid = pid
+    end,
+    _setTopBarPid = function(pid)
         topbarpid = pid
     end,
-    setBottomBarPid = function(pid)
+    _setBottomBarPid = function(pid)
         bottombarpid = pid
-    end
+    end,
 }
 
 --- Some monstrosity to allow loading libraries with require from /rom with any environment.

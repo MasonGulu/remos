@@ -36,9 +36,9 @@ bottomBarHBox:setTheme(barTheme)
 local bottomBarProcess = function()
     tui.run(bottomBarHBox, false)
 end
-local bottomBarpid = remos.addProcess(bottomBarProcess, "bottomBarUI", bottomBarWin)
+local bottomBarpid = remos._addProcess(bottomBarProcess, "bottomBarUI", bottomBarWin)
 remos.setFocused(bottomBarpid)
-remos.setBottomBarPid(bottomBarpid)
+remos._setBottomBarPid(bottomBarpid)
 
 ---@type TextWidget
 local timeText
@@ -50,9 +50,9 @@ local topBarProcess = function()
     topBarHBox:setTheme(barTheme)
     tui.run(topBarHBox, false)
 end
-local topBarpid = remos.addProcess(topBarProcess, "topBarUI", topBarWin)
+local topBarpid = remos._addProcess(topBarProcess, "topBarUI", topBarWin)
 remos.setFocused(topBarpid)
-remos.setTopBarPid(topBarpid)
+remos._setTopBarPid(topBarpid)
 
 local function reloadSettings()
     darkMode = settings.get("remos.dark_mode")
@@ -90,10 +90,10 @@ end
 reloadSettings()
 
 local menupid = assert(remos.addAppFile("remos/menu.lua"))
-remos.setMenuPid(menupid)
+remos._setMenuPid(menupid)
 
 local homepid = assert(remos.addAppFile("remos/home.lua"))
-remos.setHomePid(homepid)
+remos._setHomePid(homepid)
 
 local timer = os.startTimer(1)
 while true do
