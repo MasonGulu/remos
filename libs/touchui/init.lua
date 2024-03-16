@@ -20,6 +20,7 @@
 local fe = require "fe"
 local draw = require "draw"
 local strings = require("cc.strings")
+local expect = require("cc.expect").expect
 
 
 local LONG_PRESS_TIME = 200
@@ -120,6 +121,8 @@ end
 ---@param alignment "l"|"c"|"r"? left default
 ---@return TextWidget
 local function textWidget(text, alignment)
+    expect(1, text, "string")
+    expect(2, alignment, "string", "nil")
     ---@class TextWidget
     local self = setmetatable(emptyWidget(), textWidget_meta)
     self.alignment = alignment or "l"
@@ -141,6 +144,7 @@ end
 ---Quit running the UI
 ---@param root Widget
 local function quit(root)
+    expect(1, root, "table")
     root.exit = true
     -- os.queueEvent("touchui_quit")
 end
@@ -150,6 +154,10 @@ end
 ---@param onEvent fun(...:any)?
 ---@param resizeToTerm boolean? resize the root.window to match term's size on term_resize
 local function run(root, allowBack, onEvent, resizeToTerm)
+    expect(1, root, "table")
+    expect(2, allowBack, "boolean", "nil")
+    expect(3, onEvent, "function", "nil")
+    expect(4, resizeToTerm, 'boolean', "nil")
     local dragging = false
     ---@type integer
     local clickStartTime = os.epoch("utc")
