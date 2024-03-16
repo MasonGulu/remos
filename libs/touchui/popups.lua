@@ -78,8 +78,9 @@ end
 ---@param mandatory boolean if you cannot exit this popup without selecting a file (via pressing back)
 ---@param write boolean?
 ---@param allowDirs boolean? Allow the user to select/create directories
+---@param extension string? Lock the file extension
 ---@return string? filepath
-local function filePopup(label, path, mandatory, write, allowDirs)
+local function filePopup(label, path, mandatory, write, allowDirs, extension)
     local rootWin = window.create(term.current(), 1, 1, term.getSize())
     path = path or "/"
 
@@ -142,7 +143,12 @@ local function filePopup(label, path, mandatory, write, allowDirs)
         local newfileButton = input.buttonWidget("+File", function(self)
             if #filenameInput.value > 0 then
                 rootVbox.exit = true
-                selectedFile = fs.combine(path, filenameInput.value)
+                local filename = filenameInput.value
+                if extension and not filename:sub(#extension) == extension then
+                    -- extension required and currently not in the filename
+                    filename = ("%s.%s"):format(filename, extension)
+                end
+                selectedFile = fs.combine(path, filename)
                 filenameInput:setValue("")
             end
         end, nil, false)
@@ -154,17 +160,20 @@ local function filePopup(label, path, mandatory, write, allowDirs)
             return
         end
         path = newPath
-        local files = fs.list(path)
-        for i, v in ipairs(files) do
+        local files_raw = fs.list(path)
+        local files_filtered = {}
+        for i, v in ipairs(files_raw) do
             if fs.isDir(fs.combine(path, v)) then
-                files[i] = v .. "/"
+                files_filtered[#files_filtered + 1] = v .. "/"
+            elseif (not extension) or v:sub(- #extension) == extension then
+                files_filtered[#files_filtered + 1] = v
             end
         end
         if path == "" then path = "/" end
         if path ~= "/" then
-            table.insert(files, 1, "..")
+            table.insert(files_filtered, 1, "..")
         end
-        fileList:setTable(files)
+        fileList:setTable(files_filtered)
         pathText:updateText(path)
     end
 
