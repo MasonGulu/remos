@@ -302,12 +302,15 @@ function genericScrollableBox__index:repositionCords(x, y)
 end
 
 function genericScrollableBox__index:cursorInBox(x, y)
-    return x >= 1 and x <= self.w and y >= 1 and y <= self.h
+    return tui.withinSquare(x, y, 1, 1, self.w, self.h)
 end
 
 function genericScrollableBox__index:dragStart(button, sx, sy, nx, ny)
     local psx, psy = self:repositionCords(sx, sy)
     local pnx, pny = self:repositionCords(nx, ny)
+    if not self:cursorInBox(sx, sx) then
+        return
+    end
     local dragUsed = self.parent:dragStart(button, psx, psy, pnx, pny)
     if not dragUsed then
         if (self.dir == "w" and sy ~= ny) or (self.dir == "h" and sx ~= nx) then
@@ -343,7 +346,7 @@ function genericScrollableBox__index:drag(button, x, y)
             self:setScroll(self.startScroll + self.dragY - x)
         end
         return true
-    else
+    elseif self:cursorInBox(x, y) then
         return self.parent:drag(button, self:repositionCords(x, y))
     end
 end
@@ -357,17 +360,21 @@ function genericScrollableBox__index:dragEnd(button, x, y)
         end
         self.dragging = false
         return true
-    else
+    elseif self:cursorInBox(x, y) then
         return self.parent:dragEnd(button, self:repositionCords(x, y))
     end
 end
 
 function genericScrollableBox__index:shortPress(button, x, y)
-    return self.parent:shortPress(button, self:repositionCords(x, y))
+    if self:cursorInBox(x, y) then
+        return self.parent:shortPress(button, self:repositionCords(x, y))
+    end
 end
 
 function genericScrollableBox__index:longPress(button, x, y)
-    return self.parent:longPress(button, self:repositionCords(x, y))
+    if self:cursorInBox(x, y) then
+        return self.parent:longPress(button, self:repositionCords(x, y))
+    end
 end
 
 function genericScrollableBox__index:scroll(dir, x, y)
