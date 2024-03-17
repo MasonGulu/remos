@@ -249,6 +249,9 @@ function inputWidget__index:char(ch)
         end
         self.value = newValue
         self:updateScroll(1)
+        if self.onUpdate then
+            self.onUpdate(self.value)
+        end
         return true
     end
 end
@@ -264,6 +267,9 @@ function inputWidget__index:key(code)
         if code == keys.backspace then
             self:updateScroll(-1)
             self.value = self.value:sub(1, self.cursorPos - 1) .. self.value:sub(self.cursorPos + 1, -1)
+            if self.onUpdate then
+                self.onUpdate(self.value)
+            end
         elseif code == keys.left then
             self:updateScroll(-1)
         elseif code == keys.right then
@@ -301,11 +307,13 @@ end
 ---Create a text input widget
 ---@param label string?
 ---@param filter textFilter?
+---@param onUpdate fun(value:string)?
 ---@return InputWidget
-local function inputWidget(label, filter)
+local function inputWidget(label, filter, onUpdate)
     ---@class InputWidget
     local self = setmetatable(tui.emptyWidget(), inputWidget_meta)
     self.filter = filter
+    self.onUpdate = onUpdate
     self.label = label or ""
     self.value = ""
     self.cursorPos = 1
@@ -324,11 +332,12 @@ function fileWidget__index:draw()
     draw.set_col(self.theme.fg, self.theme.bg, self.window)
     self.window.clear()
 
-    draw.text(1, 1, self.label, self.window)
-    draw.text(self.w - #browseString, 1, browseString, self.window)
+    local centerY = math.floor(self.h / 2)
+    draw.text(2, centerY, self.label, self.window)
+    draw.text(self.w - #browseString, centerY, browseString, self.window)
 
     if self.selected then
-        draw.text(1, 2, self.selected, self.window)
+        draw.text(3, 2, self.selected, self.window)
     end
 
     self.window.setVisible(true)
@@ -337,7 +346,7 @@ end
 function fileWidget__index:shortPress(button, x, y)
     if tui.withinSquare(x, y, self.w - #browseString, 1, self.w, 1) then
         self.selected = require("touchui.popups").filePopup(("Picking %s"):format(self.label), nil, false, self.write,
-            self.allowDirs)
+            self.allowDirs, self.extension)
         return true
     end
 end
@@ -346,14 +355,65 @@ end
 ---@param label string
 ---@param write boolean?
 ---@param allowDirs boolean?
+---@param extension string?
 ---@return FileWidget
-local function fileWidget(label, write, allowDirs)
+local function fileWidget(label, write, allowDirs, extension)
     ---@class FileWidget
     ---@field selected string?
     local self = setmetatable(tui.emptyWidget(), fileWidget_meta)
     self.write = write
     self.allowDirs = allowDirs
     self.label = label
+    self.extension = extension
+    return self
+end
+
+---@class SelectionWidget : Widget
+local selectionWidget__index = setmetatable({}, tui.emptyWidget_meta)
+local selectionWidget__meta = { __index = selectionWidget__index }
+
+function selectionWidget__index:shortPress(button, x, y)
+    local selectedString = ("[%s\31]"):format(self.options[self.selected])
+    local centerY = math.floor(self.h / 2)
+    local x1, y1, x2, y2 = self.w - #selectedString, centerY, self.w, centerY
+    if tui.withinSquare(x, y, x1, y1, x2, y2) then
+        self.selected = require("touchui.popups")
+            .listPopup(self.label, self.options, 1, self.drawItem) or self.selected
+        self.onUpdate(self.options[self.selected], self.selected)
+        return true
+    end
+end
+
+function selectionWidget__index:draw()
+    self.window.setVisible(false)
+    draw.set_col(self.theme.fg, self.theme.bg, self.window)
+    self.window.clear()
+
+    local centerY = math.floor(self.h / 2)
+    local selectedString = ("[%s\31]"):format(self.options[self.selected])
+
+    draw.text(2, centerY, self.label, self.window)
+    draw.text(self.w - #selectedString, centerY, selectedString, self.window)
+
+    self.window.setVisible(true)
+end
+
+---Create a mobile style drop down
+---@generic T
+---@param label string
+---@param options T[]
+---@param drawItem fun(win:Window,x:number,y:number,w:number,h:number,item:T,theme:table)
+---@param onUpdate fun(item:T,index:integer)
+---@return SelectionWidget
+local function selectionWidget(label, options, drawItem, onUpdate)
+    ---@class SelectionWidget
+    local self = setmetatable(tui.emptyWidget(), selectionWidget__meta)
+    self.label = label
+    self.options = options
+    self.selected = 1
+    self.drawItem = drawItem
+    self.onUpdate = onUpdate
+
     return self
 end
 
@@ -362,5 +422,6 @@ return {
     buttonWidget = buttonWidget,
     sliderWidget = sliderWidget,
     inputWidget = inputWidget,
-    fileWidget = fileWidget
+    fileWidget = fileWidget,
+    selectionWidget = selectionWidget
 }

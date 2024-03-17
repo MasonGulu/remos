@@ -53,6 +53,13 @@ settings.define("remos.autoCloseDeadApps", {
     type = "boolean",
     default = true
 })
+
+settings.define("remos.timezone", {
+    description = "Timezone offset from UTC",
+    type = "number",
+    default = 0
+})
+
 ---Whether all apps should be automatically closed
 local autoCloseDeadApps = settings.get("remos.autoCloseDeadApps")
 settings.save()
@@ -619,6 +626,11 @@ _G.remos = {
         return nt
     end,
     removeFromTable = removeFromArray,
+    ---Get the configured timezone's epoch in ms
+    epoch = function()
+        local tz = settings.get("remos.timezone")
+        return os.epoch("utc") + (tz * 60 * 60 * 1000)
+    end
 }
 
 ---- Internal API

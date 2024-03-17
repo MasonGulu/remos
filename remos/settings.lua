@@ -21,13 +21,46 @@ end
 local function toggleSetting(label, name)
     settingVbox:addWidget(input.toggleWidget(label, settingUpdateOnEvent(name), settings.get(name)), 2)
 end
+
+local function label(t, alignment, scale)
+    local h = 3
+    scale = scale or 0
+    if scale > 0 then h = (3 * scale) + 1 end
+    settingVbox:addWidget(tui.textWidget(t, alignment, scale), h)
+end
+
+local function inputSetting(label, name, number)
+    local inputWidget = input.inputWidget(label, number and tonumber, function(value)
+        if number then
+            value = tonumber(value)
+            if not value then
+                return
+            end
+        end
+        settings.set(name, value)
+    end)
+    settingVbox:addWidget(inputWidget, 3)
+    inputWidget:setValue(tostring(settings.get(name)))
+end
+
+label("UI", "c", 1)
 toggleSetting("Dark Mode", "remos.dark_mode")
 toggleSetting("Inverse Buttons", "remos.invert_buttons")
-toggleSetting("Large Home Icons", "remos.home.large_icons")
+local timeFormatOptions = { "%I:%M %p", "%R", "%r", "%T" }
+local timeFormatWidget = input.selectionWidget("Time Format", timeFormatOptions,
+    function(win, x, y, w, h, item, theme)
+        draw.text(x, y, item, win)
+        local formatted = os.date(item) --[[@as string]]
+        draw.text(x + w - #formatted, y, formatted, win)
+    end, settingUpdateOnEvent("remos.top_bar.time_format"))
+settingVbox:addWidget(timeFormatWidget, 2)
+inputSetting("UTC Timezone", "remos.timezone", tonumber)
 ---@diagnostic disable-next-line: undefined-global
 if periphemu then
     toggleSetting("Use ns time units*", "remos.use_nano_seconds")
 end
+label("Home", "c", 1)
+toggleSetting("Large Home Icons", "remos.home.large_icons")
 
 settingVbox:addWidget(input.buttonWidget("Add Shortcut", function(self)
     os.queueEvent("add_home_shortcut")

@@ -43,8 +43,14 @@ local bottomBarpid = _remos._addProcess(bottomBarProcess, "bottomBarUI", bottomB
 remos.setFocused(bottomBarpid)
 _remos._setBottomBarPid(bottomBarpid)
 
+settings.define("remos.top_bar.time_format", {
+    description = "Time format to pass into os.date to display on the top bar",
+    type = "string",
+    default = "%R"
+})
+
 local function timeText()
-    return os.date("%I:%M %p") --[[@as string]]
+    return os.date(settings.get("remos.top_bar.time_format"), remos.epoch() / 1000) --[[@as string]]
 end
 
 ---@type TextWidget

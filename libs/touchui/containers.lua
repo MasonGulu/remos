@@ -308,7 +308,7 @@ end
 function genericScrollableBox__index:dragStart(button, sx, sy, nx, ny)
     local psx, psy = self:repositionCords(sx, sy)
     local pnx, pny = self:repositionCords(nx, ny)
-    if not self:cursorInBox(sx, sx) then
+    if not self:cursorInBox(sx, sy) then
         return
     end
     local dragUsed = self.parent:dragStart(button, psx, psy, pnx, pny)
