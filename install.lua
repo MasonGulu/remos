@@ -35,6 +35,7 @@ local files = {
         },
         ["fe.lua"] = fromRepository "libs/fe.lua",
         ["draw.lua"] = fromRepository "libs/draw.lua",
+        ["bigfont.lua"] = fromURL "https://pastebin.com/raw/3LfWxRWh"
     },
     config = {
         ["home_apps.table"] = fromRepository "config/home_apps.table",

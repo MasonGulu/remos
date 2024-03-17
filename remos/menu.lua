@@ -6,9 +6,12 @@ local list = require("touchui.lists")
 local draw = require("draw")
 local homeWin = window.create(term.current(), 1, 1, term.getSize())
 
-local inbox = list.listWidget(remos._apps, 8, function(win, x, y, w, h, item, theme)
-    draw.text(x, y, ("%s"):format(item.title), win)
-    -- draw.text(x, y + 1, ("pid=%d;ppid=%d;state=%s"):format(item.pid, item.ppid, item.state), win)
+---@type RemosInternalAPI
+local _remos = getmetatable(remos)
+
+local inbox = list.listWidget(_remos._apps, 8, function(win, x, y, w, h, item, theme)
+    draw.text(x, y, ("%d>%d %s"):format(item.ppid, item.pid, item.title), win)
+    -- draw.text(x, y + 1, ("%d>%d"):format(item.ppid, item.pid), win)
     draw.set_col(theme.fg, theme.bg, win)
     for i = 1, h - 1 do
         win.setCursorPos(x, y + i)

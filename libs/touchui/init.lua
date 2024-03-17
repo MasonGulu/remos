@@ -88,7 +88,11 @@ local textWidget_meta = { __index = textWidget__index }
 
 function textWidget__index:updateText(t)
     self.text = t
-    self.wrapped = strings.wrap(self.text, self.w)
+    local divider = 1
+    if self.scale > 0 then
+        divider = 3 * self.scale
+    end
+    self.wrapped = strings.wrap(self.text, math.floor(self.w / divider))
     self.lines = #self.wrapped
 end
 
@@ -102,14 +106,24 @@ end
 function textWidget__index:draw()
     self.window.setVisible(false)
     draw.set_col(self.theme.fg, self.theme.bg, self.window)
+    local charw = 1
+    if self.scale > 0 then
+        charw = 3 * self.scale
+    end
     self.window.clear()
     for i, t in ipairs(self.wrapped) do
+        local x
         if self.alignment == "c" then
-            draw.center_text(i, t, self.window)
+            x = math.floor((self.w - (#t * charw)) / 2)
         elseif self.alignment == "l" then
-            draw.text(1, i, t, self.window)
+            x = 1
         elseif self.alignment == "r" then
-            draw.text(self.w - #t, i, t, self.window)
+            x = self.w - (#t * charw)
+        end
+        if self.scale == 0 then
+            draw.text(x, i, t, self.window)
+        else
+            require("bigfont").writeOn(self.window, self.scale, t, x, i * self.scale)
         end
     end
     self.window.setVisible(true)
@@ -119,13 +133,16 @@ end
 ---Create a simple widget that just displays text
 ---@param text string
 ---@param alignment "l"|"c"|"r"? left default
+---@param scale integer? size (0 = default/normal, 1+ bigfont)
 ---@return TextWidget
-local function textWidget(text, alignment)
+local function textWidget(text, alignment, scale)
     expect(1, text, "string")
     expect(2, alignment, "string", "nil")
     ---@class TextWidget
     local self = setmetatable(emptyWidget(), textWidget_meta)
     self.alignment = alignment or "l"
+    self.scale = scale or 0
+    self.w = 50 -- w must be defined to call updateText.
     self:updateText(text)
 
     return self

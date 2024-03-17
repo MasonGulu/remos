@@ -2,6 +2,9 @@ local tui = require("touchui")
 local container = require("touchui.containers")
 local input = require("touchui.input")
 
+---@type RemosInternalAPI
+local _remos = getmetatable(remos)
+
 settings.define("remos.dark_mode", {
     description = "Dark mode",
     type = "boolean",
@@ -36,23 +39,27 @@ bottomBarHBox:setTheme(barTheme)
 local bottomBarProcess = function()
     tui.run(bottomBarHBox, false)
 end
-local bottomBarpid = remos._addProcess(bottomBarProcess, "bottomBarUI", bottomBarWin)
+local bottomBarpid = _remos._addProcess(bottomBarProcess, "bottomBarUI", bottomBarWin)
 remos.setFocused(bottomBarpid)
-remos._setBottomBarPid(bottomBarpid)
+_remos._setBottomBarPid(bottomBarpid)
+
+local function timeText()
+    return os.date("%I:%M %p") --[[@as string]]
+end
 
 ---@type TextWidget
-local timeText
+local timeLabel
 local topBarHBox = container.hBox()
 local topBarProcess = function()
     topBarHBox:setWindow(topBarWin)
-    timeText = tui.textWidget(os.date("%r") --[[@as string]], "c")
-    topBarHBox:addWidget(timeText)
+    timeLabel = tui.textWidget(timeText(), "l")
+    topBarHBox:addWidget(timeLabel)
     topBarHBox:setTheme(barTheme)
     tui.run(topBarHBox, false)
 end
-local topBarpid = remos._addProcess(topBarProcess, "topBarUI", topBarWin)
+local topBarpid = _remos._addProcess(topBarProcess, "topBarUI", topBarWin)
 remos.setFocused(topBarpid)
-remos._setTopBarPid(topBarpid)
+_remos._setTopBarPid(topBarpid)
 
 local function reloadSettings()
     darkMode = settings.get("remos.dark_mode")
@@ -90,10 +97,10 @@ end
 reloadSettings()
 
 local menupid = assert(remos.addAppFile("remos/menu.lua"))
-remos._setMenuPid(menupid)
+_remos._setMenuPid(menupid)
 
 local homepid = assert(remos.addAppFile("remos/home.lua"))
-remos._setHomePid(homepid)
+_remos._setHomePid(homepid)
 
 local timer = os.startTimer(1)
 while true do
@@ -109,5 +116,5 @@ while true do
     elseif e == "settings_update" then
         reloadSettings()
     end
-    timeText:updateText(os.date("%r"))
+    timeLabel:updateText(timeText())
 end

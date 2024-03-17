@@ -1,5 +1,9 @@
 package.path = package.path .. ";/libs/?.lua/;/libs/?/init.lua"
 
+if remos then
+    error("Remos is already running!")
+end
+
 local expect = require("cc.expect").expect
 local termW, termH = term.getSize()
 local draw = require "draw"
@@ -403,6 +407,9 @@ end
 ---@param e any[]
 ---@param process Process
 local function tickProcess(e, process)
+    if process.pid == 0 then
+        return -- Do not tick the KERNEL process
+    end
     if e[1] == "term_resize" then
         updateProcessWindow(process)
     end
@@ -612,12 +619,17 @@ _G.remos = {
         return nt
     end,
     removeFromTable = removeFromArray,
+}
 
-    ---- Internal API
-
+---- Internal API
+---@class RemosInternalAPI
+local remosInternalAPI = {
+    -- TODO find a better way to expose apps and processes
     _apps = apps,
     _processes = processes,
-    ---Create a new background process
+    ---Create a new process with a window assigned to it
+    ---Internal because it uses the window position to offset mouse events
+    ---and Apps already have an offset window, causing problems.
     ---@param fn function
     ---@param title string
     ---@param win Window?
@@ -626,24 +638,32 @@ _G.remos = {
         return addProcess(fn, title, runningpid, win)
     end,
     ---Set the pid of the which process is "home"
+    ---Internal because only init should set this.
     ---@param pid integer
     _setHomePid = function(pid)
         removeFromArray(apps, processes[pid])
         homepid = pid
     end,
     ---Set the pid of the which process is "menu"
+    ---Internal because only init should set this.
     ---@param pid integer
     _setMenuPid = function(pid)
         removeFromArray(apps, processes[pid])
         menupid = pid
     end,
+    ---Set the pid of the which process is the top bar
+    ---Internal because only init should set this.
     _setTopBarPid = function(pid)
         topbarpid = pid
     end,
+    ---Set the pid of the which process is the bottom bar
+    ---Internal because only init should set this.
     _setBottomBarPid = function(pid)
         bottombarpid = pid
-    end,
+    end
 }
+
+setmetatable(_G.remos, remosInternalAPI)
 
 --- Some monstrosity to allow loading libraries with require from /rom with any environment.
 local oldfsopen = fs.open
@@ -682,7 +702,7 @@ processes[0] = {
     pid = 0,
     ppid = 0,
     children = {},
-    coro = coroutine.create(function() os.pullEvent("do_not_ever_queue_this_event_thanks") end),
+    coro = coroutine.create(function() while true do os.pullEvent("do_not_ever_queue_this_event_thanks") end end),
     cyclesAlive = 0,
     file = "/remos/kernel.lua",
     title = "KERNEL",
@@ -697,6 +717,6 @@ processes[0] = {
 local initpid = addProcess(assert(loadfile("remos/init.lua", "t", _ENV)), "INIT", 0)
 processes[initpid].file = "/remos/init.lua"
 
-os.queueEvent("REMOS BOOT")
+os.queueEvent("remos_boot")
 runProcesses()
 error("Kernel Exited!")

@@ -8,6 +8,10 @@ local homeWin = window.create(term.current(), 1, 1, term.getSize())
 local hBox = container.scrollableHBox()
 hBox:setWindow(homeWin)
 local vBox = container.vBox()
+
+---@type RemosInternalAPI
+local _remos = getmetatable(remos)
+
 ---@alias TaskMonFieldInfo {format:string,title:string,key:string,formatList:string,floatFix:boolean?,width:integer}
 ---@type TaskMonFieldInfo[]
 local fields = {}
@@ -102,7 +106,7 @@ vBox:addWidget(inbox)
 
 local function updateProccesses()
     sortedProcesses = {}
-    for pid, process in pairs(remos._processes) do
+    for pid, process in pairs(_remos._processes) do
         sortedProcesses[#sortedProcesses + 1] = process
     end
     table.sort(sortedProcesses, function(a, b)

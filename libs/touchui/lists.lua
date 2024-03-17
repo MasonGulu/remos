@@ -1,6 +1,7 @@
 local tui = require "touchui"
 local theme = tui.theme
 local draw = require "draw"
+local expect = require("cc.expect").expect
 
 ---@class GenericListWidget : Widget
 ---@field getLayout fun(self: GenericListWidget, index: integer): x: integer, y: integer, w:integer, h:integer
@@ -326,6 +327,12 @@ end
 ---@param onLongPress fun(index:integer,item:T)?
 ---@return GridListWidget
 local function gridListWidget(t, pagew, pageh, drawItem, onShortPress, onLongPress)
+    expect(1, t, "table")
+    expect(2, pagew, "number")
+    expect(3, pageh, "number")
+    expect(4, drawItem, "function")
+    expect(5, onShortPress, "function", "nil")
+    expect(6, onLongPress, "function", "nil")
     ---@class GridListWidget
     local self = setmetatable(tui.emptyWidget(), gridListWidget_meta)
     -- 1 INDEXED
