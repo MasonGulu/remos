@@ -446,7 +446,7 @@ local function runProcesses()
         elseif e[1] == "back_button" and focusedpid == menupid then
             setFocused(homepid)
         elseif e[1] == "menu_button" and focusedpid == menupid then
-            setFocused(homepid)
+            setFocused((apps[1] or { pid = homepid }).pid)
         else
             if e[1] == "term_resize" then
                 updateApplicationWindow()
@@ -627,9 +627,11 @@ _G.remos = {
     end,
     removeFromTable = removeFromArray,
     ---Get the configured timezone's epoch in ms
-    epoch = function()
+    ---@param time integer? UTC epoch to apply timezone to. Defaults to current time.
+    epoch = function(time)
         local tz = settings.get("remos.timezone")
-        return os.epoch("utc") + (tz * 60 * 60 * 1000)
+        time = time or os.epoch("utc")
+        return time + (tz * 60 * 60 * 1000)
     end
 }
 

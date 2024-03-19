@@ -20,16 +20,14 @@ local homeWin = window.create(term.current(), 1, 1, term.getSize())
 ---@return BLIT?
 ---@return string?
 local function loadIcon(fn)
-    local f, err = fs.open(fn, "r")
-    if not f then
-        return nil, err
+    local icon, reason = remos.loadTable(fn)
+    local bgchar = colors.toBlit(tui.theme.bg)
+    if icon --[[@as BLIT]] then
+        for _, v in ipairs(icon) do
+            v[2] = string.gsub(v[2], " ", bgchar)
+            v[3] = string.gsub(v[3], " ", bgchar)
+        end
     end
-    local t = f.readAll()
-    if not t then
-        return nil, "Empty file"
-    end
-    local icon = textutils.unserialise(t)
-    f.close()
     return icon --[[@as BLIT]]
 end
 
@@ -155,6 +153,10 @@ tui.run(gridList, nil, function(event)
             homeSize = 3
         end
         gridList:updateGridSize(homeSize, homeSize)
+        shortcuts = loadShortcuts()
+        gridList:setTable(shortcuts)
+        defaultIconLarge = assert(loadIcon("icons/default_icon_large.blit"))
+        defaultIconSmall = assert(loadIcon("icons/default_icon_small.blit"))
     elseif event == "add_home_shortcut" then
         shortcutMenu(#shortcuts + 1)
     end

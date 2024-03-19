@@ -49,8 +49,15 @@ settings.define("remos.top_bar.time_format", {
     default = "%R"
 })
 
+settings.define("remos.top_bar.use_ingame", {
+    description = "Use the ingame time for the clock.",
+    type = "boolean",
+    default = false
+})
+
 local function timeText()
-    return os.date(settings.get("remos.top_bar.time_format"), remos.epoch() / 1000) --[[@as string]]
+    local time = settings.get("remos.top_bar.use_ingame") and os.epoch("ingame") or remos.epoch()
+    return os.date(settings.get("remos.top_bar.time_format"), time / 1000) --[[@as string]]
 end
 
 ---@type TextWidget

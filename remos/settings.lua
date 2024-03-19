@@ -46,11 +46,13 @@ end
 label("UI", "c", 1)
 toggleSetting("Dark Mode", "remos.dark_mode")
 toggleSetting("Inverse Buttons", "remos.invert_buttons")
+toggleSetting("Display in-game time", "remos.top_bar.use_ingame")
 local timeFormatOptions = { "%I:%M %p", "%R", "%r", "%T" }
 local timeFormatWidget = input.selectionWidget("Time Format", timeFormatOptions,
     function(win, x, y, w, h, item, theme)
         draw.text(x, y, item, win)
-        local formatted = os.date(item) --[[@as string]]
+        local time = settings.get("remos.top_bar.use_ingame") and os.epoch("ingame") or remos.epoch()
+        local formatted = os.date(item, time / 1000) --[[@as string]]
         draw.text(x + w - #formatted, y, formatted, win)
     end, settingUpdateOnEvent("remos.top_bar.time_format"))
 settingVbox:addWidget(timeFormatWidget, 2)
