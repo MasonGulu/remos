@@ -40,6 +40,9 @@ local files = {
     config = {
         ["home_apps.table"] = fromRepository "config/home_apps.table",
     },
+    apps = {
+        ["eod"] = fromRepository "apps/eod.lua"
+    },
     ["startup.lua"] = fromRepository "startup.lua"
 }
 local alwaysOverwrite = false
