@@ -302,7 +302,7 @@ function inputWidget__index:draw()
     self.window.setVisible(false)
 end
 
----@alias textFilter fun(s:string):boolean
+---@alias textFilter fun(s:string):boolean?
 
 ---Create a text input widget
 ---@param label string?
