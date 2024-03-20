@@ -679,37 +679,21 @@ local remosInternalAPI = {
 
 setmetatable(_G.remos, remosInternalAPI)
 
---- Some monstrosity to allow loading libraries with require from /rom with any environment.
-local oldfsopen = fs.open
-local oldfsexists = fs.exists
-local oldisDir = fs.isDir
-
-_G.fs.exists = function(path)
-    local newpath = fs.combine("libs", path)
-    return oldfsexists(path) or oldfsexists(newpath)
-end
-
-_G.fs.open = function(path, mode)
-    local handle, reason = oldfsopen(path, mode)
-    if handle then
-        return handle, reason
+--- Overwrite package.path in all newly made instances of require
+local olddofile = dofile
+_G.dofile = function(filename)
+    if filename ~= "rom/modules/main/cc/require.lua" then
+        return olddofile(filename)
     end
-    if mode:sub(1, 1) == "r" then
-        local newpath = fs.combine("libs", path)
-
-        if oldfsexists(newpath) then
-            return fs.open(newpath, mode)
+    local req = olddofile(filename)
+    return {
+        make = function(env, dir)
+            local shellrequire, shellpackage = req.make(env, dir)
+            ---@diagnostic disable-next-line: inject-field, need-check-nil
+            shellpackage.path = shellpackage.path .. ";/libs/?.lua/;/libs/?/init.lua"
+            return shellrequire, shellpackage
         end
-    end
-    return handle, reason
-end
-
-_G.fs.isDir = function(path)
-    if oldfsexists(path) then
-        return oldisDir(path)
-    end
-    local newpath = fs.combine("libs", path)
-    return oldisDir(newpath)
+    }
 end
 
 processes[0] = {
