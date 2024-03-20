@@ -106,6 +106,7 @@ local function reloadSettings()
     end
     bottomBarHBox:setTheme(barTheme)
     topBarHBox:setTheme(barTheme)
+    _G.remos.theme = tui.theme
 end
 reloadSettings()
 

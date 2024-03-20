@@ -26,7 +26,7 @@ local expect = require("cc.expect").expect
 local LONG_PRESS_TIME = 200
 local TIMEOUT = 5000
 
-local theme = {
+local theme = (_G.remos and _G.remos.theme) or {
     bg = colors.white,
     fg = colors.black,
     checked = colors.green,
