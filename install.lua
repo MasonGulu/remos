@@ -16,6 +16,10 @@ local files = {
         ["worm_icon_small.blit"] = fromRepository "icons/worm_icon_small.blit",
         ["eod_icon_large.blit"] = fromRepository "icons/eod_icon_large.blit",
         ["eod_icon_small.blit"] = fromRepository "icons/eod_icon_small.blit",
+        ["iconedit_icon_large.blit"] = fromRepository "icons/iconedit_icon_large.blit",
+        ["iconedit_icon_small.blit"] = fromRepository "icons/iconedit_icon_small.blit",
+        ["unknown_icon_large.blit"] = fromRepository "icons/unknown_icon_large.blit",
+        ["unknown_icon_small.blit"] = fromRepository "icons/unknown_icon_small.blit",
     },
     remos = {
         ["home.lua"] = fromRepository "remos/home.lua",
@@ -50,11 +54,10 @@ local files = {
 }
 local alwaysOverwrite = false
 local function downloadFile(path, url)
-    print(string.format("Installing %s to %s", url, path))
     local response = assert(http.get(url, nil, true), "Failed to get " .. url)
     local writeFile = true
     if fs.exists(path) and not alwaysOverwrite then
-        term.write("%s already exists, overwrite? Y/n/always? ")
+        term.write(("%s already exists, overwrite? Y/n/always? "):format(path))
         local i = io.read():sub(1, 1)
         alwaysOverwrite = i == "a"
         writeFile = alwaysOverwrite or i ~= "n"
@@ -67,9 +70,37 @@ local function downloadFile(path, url)
     response.close()
 end
 
+local function printBar(percentage)
+    term.clearLine()
+    local _, w = term.getSize()
+    local filledw = math.ceil(percentage * (w - 2))
+    local bar = "[" .. ("*"):rep(filledw) .. (" "):rep(w - filledw - 2) .. "]"
+    print(bar)
+end
+
+local function count(t)
+    local i = 0
+    for _, _ in pairs(t) do
+        i = i + 1
+    end
+    return i
+end
+
+local function printProgress(y, path, percent)
+    term.setCursorPos(1, y)
+    printBar(percent)
+    term.clearLine()
+    print(path)
+end
+
 local function downloadFiles(folder, files)
+    local total = count(files)
+    local filen = 0
+    local _, y = term.getCursorPos()
     for k, v in pairs(files) do
+        filen = filen + 1
         local path = fs.combine(folder, k)
+        printProgress(y, path, filen / total)
         if v.url then
             downloadFile(path, v.url)
         else
@@ -77,6 +108,14 @@ local function downloadFiles(folder, files)
             downloadFiles(path, v)
         end
     end
+    term.setCursorPos(1, y)
+    term.clearLine()
+    term.setCursorPos(1, y + 1)
+    term.clearLine()
 end
+
+term.clear()
+term.setCursorPos(1, 1)
+print("Installing Remos...")
 
 downloadFiles("/", files)

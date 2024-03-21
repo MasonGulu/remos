@@ -39,14 +39,23 @@ local function saveShortcuts(shortcuts)
     assert(remos.saveTable("config/home_apps.table", shortcuts))
 end
 
+
+local defaultIconLarge = assert(loadIcon("icons/default_icon_large.blit"))
+local defaultIconSmall = assert(loadIcon("icons/default_icon_small.blit"))
+
+local unknownIconLarge = assert(loadIcon("icons/unknown_icon_large.blit"))
+local unknownIconSmall = assert(loadIcon("icons/unknown_icon_small.blit"))
+
 local function loadShortcuts()
     local shortcuts = assert(remos.loadTable("config/home_apps.table"))
     for i, v in ipairs(shortcuts) do
         if v.iconSmallFile then
-            v.iconSmall = assert(loadIcon(v.iconSmallFile))
+            v.iconSmall = loadIcon(v.iconSmallFile)
+            v.iconLarge = v.iconSmall
+            v.iconSmall = v.iconSmall or unknownIconSmall
         end
         if v.iconLargeFile then
-            v.iconLarge = assert(loadIcon(v.iconLargeFile))
+            v.iconLarge = loadIcon(v.iconLargeFile) or v.iconLarge or unknownIconLarge
         end
     end
     return shortcuts
@@ -115,9 +124,6 @@ local function shortcutMenu(index, label, path, iconSmallFile, iconLargeFile)
 
     tui.run(rootVbox, true, nil, true)
 end
-
-local defaultIconLarge = assert(loadIcon("icons/default_icon_large.blit"))
-local defaultIconSmall = assert(loadIcon("icons/default_icon_small.blit"))
 
 settings.define("remos.home.large_icons", {
     description = "Use large icons for home screen (3x3 instead of 4x4)",

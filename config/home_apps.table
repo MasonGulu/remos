@@ -1,33 +1,35 @@
 {
   {
-    label = "Shell",
     path = "/rom/programs/shell.lua",
+    label = "Shell",
   },
   {
-    label = "Taskmon",
     path = "remos/taskmon.lua",
+    label = "Taskmon",
   },
   {
-    label = "Browser",
     path = "apps/browser.lua",
+    label = "Browser",
   },
   {
-    label = "Worm",
     iconLargeFile = "icons/worm_icon_large.blit",
-    path = "rom/programs/fun/worm.lua",
     iconSmallFile = "icons/worm_icon_small.blit",
+    label = "Worm",
+    path = "rom/programs/fun/worm.lua",
   },
   {
-    label = "Settings",
     path = "remos/settings.lua",
+    label = "Settings",
   },
   {
-    label = "EOD",
     iconLargeFile = "icons/eod_icon_large.blit",
-    path = "apps/eod.lua",
     iconSmallFile = "icons/eod_icon_small.blit",
+    label = "EOD",
+    path = "apps/eod.lua",
   },
   {
+    iconLargeFile = "icons/iconedit_icon_large.blit",
+    iconSmallFile = "icons/iconedit_icon_small.blit",
     label = "IconEdit",
     path = "apps/iconedit.lua",
   },
