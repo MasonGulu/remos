@@ -537,6 +537,8 @@ local function renderGame()
     local draw = require "draw"
     while true do
         rootWin.setVisible(false)
+        rootWin.setBackgroundColor(colors.black)
+        rootWin.setTextColor(colors.white)
         rootWin.clear()
         draw.square(-scrollX, -scrollY, boardw + 2, boardh + 2, rootWin)
         drawField()

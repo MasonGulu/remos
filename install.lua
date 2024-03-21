@@ -9,12 +9,13 @@ local function fromRepository(url)
 end
 
 local files = {
-    ["browser.lua"] = fromRepository "browser.lua",
     icons = {
         ["default_icon_large.blit"] = fromRepository "icons/default_icon_large.blit",
         ["default_icon_small.blit"] = fromRepository "icons/default_icon_small.blit",
         ["worm_icon_large.blit"] = fromRepository "icons/worm_icon_large.blit",
         ["worm_icon_small.blit"] = fromRepository "icons/worm_icon_small.blit",
+        ["eod_icon_large.blit"] = fromRepository "icons/eod_icon_large.blit",
+        ["eod_icon_small.blit"] = fromRepository "icons/eod_icon_small.blit",
     },
     remos = {
         ["home.lua"] = fromRepository "remos/home.lua",
@@ -41,7 +42,9 @@ local files = {
         ["home_apps.table"] = fromRepository "config/home_apps.table",
     },
     apps = {
-        ["eod"] = fromRepository "apps/eod.lua"
+        ["eod.lua"] = fromRepository "apps/eod.lua",
+        ["browser.lua"] = fromRepository "apps/browser.lua",
+        ["iconedit.lua"] = fromRepository "apps/iconedit.lua",
     },
     ["startup.lua"] = fromRepository "startup.lua"
 }
