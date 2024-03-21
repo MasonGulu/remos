@@ -582,7 +582,7 @@ _G.remos = {
     ---@return string?
     loadTable = function(fn)
         expect(1, fn, "string")
-        local f, err = fs.open(fn, "r")
+        local f, err = fs.open(fn, "rb")
         if not f then
             return nil, err
         end
@@ -602,7 +602,7 @@ _G.remos = {
         expect(1, fn, "string")
         expect(2, t, "table")
         local st = textutils.serialise(t)
-        local f, err = fs.open(fn, "w")
+        local f, err = fs.open(fn, "wb")
         if not f then
             return nil, err
         end

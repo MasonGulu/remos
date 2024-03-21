@@ -952,7 +952,7 @@ local function rootMenu()
     local rootVbox = containers.vBox()
     rootVbox:setWindow(rootWin)
 
-    rootVbox:addWidget(tui.textWidget("EMPIRE", "c", 1), 3)
+    rootVbox:addWidget(tui.textWidget("EMPIRES", "c", 1), 3)
     rootVbox:addWidget(tui.textWidget("OF", "c", 1), 3)
     rootVbox:addWidget(tui.textWidget("DIRT", "c", 1), 3)
 
@@ -989,7 +989,7 @@ local allowedArgs = {
 }
 
 local function printHelp()
-    print("EMPIRE OF DIRT")
+    print("EMPIRES OF DIRT")
     print("-- join name <hostname> [args]")
     print("Join a server with the given name. If hostname is not provided join the first found.")
     print("-- host hostname <name> [args]")
@@ -1065,7 +1065,7 @@ local function handleArgs()
     else
         term.clear()
         term.setCursorPos(1, 1)
-        print("EMPIRE OF DIRT")
+        print("EMPIRES OF DIRT")
         print("Run with -help to see CLI usage.")
         term.write("(J)oin/(h)ost? ")
         local input = read()

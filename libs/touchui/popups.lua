@@ -144,7 +144,7 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension)
             if #filenameInput.value > 0 then
                 rootVbox.exit = true
                 local filename = filenameInput.value
-                if extension and not filename:sub(#extension) == extension then
+                if extension and not filename:sub(- #extension) == extension then
                     -- extension required and currently not in the filename
                     filename = ("%s.%s"):format(filename, extension)
                 end

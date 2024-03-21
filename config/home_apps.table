@@ -2,6 +2,7 @@
   {
     path = "/rom/programs/shell.lua",
     label = "Shell",
+    iconSmallFile = "icons/shell_icon_small.blit",
   },
   {
     path = "remos/taskmon.lua",
@@ -9,28 +10,31 @@
   },
   {
     path = "apps/browser.lua",
+    iconLargeFile = "icons/browser_icon_large.blit",
     label = "Browser",
+    iconSmallFile = "icons/browser_icon_small.blit",
   },
   {
-    iconLargeFile = "icons/worm_icon_large.blit",
-    iconSmallFile = "icons/worm_icon_small.blit",
-    label = "Worm",
     path = "rom/programs/fun/worm.lua",
+    iconLargeFile = "icons/worm_icon_large.blit",
+    label = "Worm",
+    iconSmallFile = "icons/worm_icon_small.blit",
   },
   {
     path = "remos/settings.lua",
     label = "Settings",
+    iconSmallFile = "icons/settings_icon.blit",
   },
   {
-    iconLargeFile = "icons/eod_icon_large.blit",
-    iconSmallFile = "icons/eod_icon_small.blit",
-    label = "EOD",
     path = "apps/eod.lua",
+    iconLargeFile = "icons/eod_icon_large.blit",
+    label = "EOD",
+    iconSmallFile = "icons/eod_icon_small.blit",
   },
   {
-    iconLargeFile = "icons/iconedit_icon_large.blit",
-    iconSmallFile = "icons/iconedit_icon_small.blit",
-    label = "IconEdit",
     path = "apps/iconedit.lua",
+    iconLargeFile = "icons/iconedit_icon_large.blit",
+    label = "IconEdit",
+    iconSmallFile = "icons/iconedit_icon_small.blit",
   },
 }
