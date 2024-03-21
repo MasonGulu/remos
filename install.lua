@@ -52,16 +52,9 @@ local files = {
     },
     ["startup.lua"] = fromRepository "startup.lua"
 }
-local alwaysOverwrite = false
 local function downloadFile(path, url)
     local response = assert(http.get(url, nil, true), "Failed to get " .. url)
     local writeFile = true
-    if fs.exists(path) and not alwaysOverwrite then
-        term.write(("%s already exists, overwrite? Y/n/always? "):format(path))
-        local i = io.read():sub(1, 1)
-        alwaysOverwrite = i == "a"
-        writeFile = alwaysOverwrite or i ~= "n"
-    end
     if writeFile then
         local f = assert(fs.open(path, "wb"), "Cannot open file " .. path)
         f.write(response.readAll())
@@ -72,7 +65,7 @@ end
 
 local function printBar(percentage)
     term.clearLine()
-    local _, w = term.getSize()
+    local w = term.getSize()
     local filledw = math.ceil(percentage * (w - 2))
     local bar = "[" .. ("*"):rep(filledw) .. (" "):rep(w - filledw - 2) .. "]"
     print(bar)
@@ -116,6 +109,17 @@ end
 
 term.clear()
 term.setCursorPos(1, 1)
+print("This will install Remos on this device, overwriting files if necessary.")
+print("Do you want to continue (Y/n)? ")
+local input = read()
+if input:sub(1, 1):lower() == "n" then
+    print("Cancelled installation.")
+    return
+end
 print("Installing Remos...")
 
 downloadFiles("/", files)
+
+print("Remos installed, rebooting...")
+sleep(1)
+os.reboot()
