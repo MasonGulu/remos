@@ -20,6 +20,10 @@ local files = {
         ["iconedit_icon_small.blit"] = fromRepository "icons/iconedit_icon_small.blit",
         ["unknown_icon_large.blit"] = fromRepository "icons/unknown_icon_large.blit",
         ["unknown_icon_small.blit"] = fromRepository "icons/unknown_icon_small.blit",
+        ["settings_icon.blit"] = fromRepository "icons/settings_icon.blit",
+        ["shell_icon_small.blit"] = fromRepository "icons/shell_icon_small.blit",
+        ["browser_icon_large.blit"] = fromRepository "icons/browser_icon_large.blit",
+        ["browser_icon_small.blit"] = fromRepository "icons/browser_icon_small.blit"
     },
     remos = {
         ["home.lua"] = fromRepository "remos/home.lua",
