@@ -3,6 +3,10 @@ local rootWin = window.create(term.current(), 1, 1, termw, termh)
 local boardw, boardh = 100, 100
 local draw
 
+local modem = peripheral.find("modem")
+assert(modem, "Empires of Dirt requires a modem")
+local modemSide = peripheral.getName(modem)
+
 local scrollX, scrollY = 0, 0
 
 ---@type string[][]
@@ -623,7 +627,7 @@ local isHost
 ---@param hostname string?
 local function joinGame(name, hostname)
     draw = require "draw"
-    rednet.open("back")
+    rednet.open(modemSide)
     print("Looking up host...")
     host = rednet.lookup(protocol, hostname)
     if not host then
@@ -802,7 +806,7 @@ end
 
 local function hostGame(hostname)
     isHost = true
-    rednet.open("back")
+    rednet.open(modemSide)
     rednet.host(protocol, hostname)
     print("Hosting game.")
     os.queueEvent("iworm_server_started")
@@ -818,16 +822,6 @@ local function hostAndJoin(hostname, name)
         joinGame(name, hostname)
     end)
 end
-
--- local args = { ... }
--- if args[1] == "host" then
---     parallel.waitForAny(function() hostGame("test") end, function()
---         os.pullEvent("iworm_server_started")
---         joinGame("asdf")
---     end)
--- else
---     joinGame("test")
--- end
 
 local function joinMenu()
     local tui = require "touchui"
