@@ -45,6 +45,7 @@ end
 
 label("UI", "c", 1)
 toggleSetting("Dark Mode", "remos.dark_mode")
+toggleSetting("Invert Bar Colors", "remos.invert_bar_colors")
 toggleSetting("Inverse Buttons", "remos.invert_buttons")
 toggleSetting("Display in-game time", "remos.top_bar.use_ingame")
 local timeFormatOptions = { "%I:%M %p", "%R", "%r", "%T" }

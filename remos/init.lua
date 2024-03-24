@@ -10,6 +10,11 @@ settings.define("remos.dark_mode", {
     type = "boolean",
     default = false
 })
+settings.define("remos.invert_bar_colors", {
+    description = "Invert the colors of the top/bottom bars",
+    type = "boolean",
+    default = true
+})
 settings.define("remos.invert_buttons", {
     description = "Dark mode",
     type = "boolean",
@@ -90,10 +95,11 @@ local function reloadSettings()
         tui.theme.inputbg = colors.lightGray
         tui.theme.inputfg = colors.black
     end
-    barTheme = {
-        fg = tui.theme.bg,
-        bg = tui.theme.fg
-    }
+    barTheme = {}
+    if settings.get("remos.invert_bar_colors") then
+        barTheme.fg = tui.theme.bg
+        barTheme.bg = tui.theme.fg
+    end
     bottomBarHBox:clearWidgets()
     if inverseButtons then
         bottomBarHBox:addWidget(menu_button)
