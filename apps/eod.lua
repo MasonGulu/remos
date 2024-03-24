@@ -1,11 +1,12 @@
 local termw, termh = term.getSize()
 local rootWin = window.create(term.current(), 1, 1, termw, termh)
 local boardw, boardh = 100, 100
-local draw
+local draw = require "draw"
 
 local modem = peripheral.find("modem")
 assert(modem, "Empires of Dirt requires a modem")
 local modemSide = peripheral.getName(modem)
+rednet.open(modemSide)
 
 local scrollX, scrollY = 0, 0
 
@@ -511,7 +512,7 @@ local function recieveFromHost(filter, timeout)
         local source, mesg = rednet.receive(protocol, timeout)
         if not mesg then
             return
-        elseif source == host and not filter or (mesg.type == filter) then
+        elseif source == host and (not filter or (mesg.type == filter)) then
             return mesg
         end
     end
@@ -538,7 +539,6 @@ end
 
 
 local function renderGame()
-    local draw = require "draw"
     while true do
         rootWin.setVisible(false)
         rootWin.setBackgroundColor(colors.black)
@@ -624,17 +624,11 @@ local isHost
 
 --- Client join a hosted game
 ---@param name string
----@param hostname string?
-local function joinGame(name, hostname)
+---@param hostid integer
+local function joinGame(name, hostid)
     draw = require "draw"
-    rednet.open(modemSide)
-    print("Looking up host...")
-    host = rednet.lookup(protocol, hostname)
-    if not host then
-        printError("Could not find a host.")
-        return
-    end
     print("Attempting to join...")
+    host = hostid
     rednet.send(host, { type = "join", name = name }, protocol)
     local mesg = recieveFromHost("join_answer", 5)
     if not mesg then
@@ -730,6 +724,23 @@ local function handleDirMesg(sender, msg)
     end
 end
 
+---@type string?
+local motd
+
+local hostname
+
+--- msg {type:"info"}
+--- response {type:"info_answer", motd:string?, boardw: integer, boardh: integer}
+local function handleInfoMesg(sender, msg)
+    rednet.send(sender, {
+        type = "info_answer",
+        name = hostname,
+        motd = motd,
+        boardw = boardw,
+        boardh = boardh,
+    }, protocol)
+end
+
 local function handleMessages()
     while true do
         local sender, msg = rednet.receive(protocol)
@@ -739,6 +750,8 @@ local function handleMessages()
             handleSpawnMesg(sender, msg)
         elseif msg.type == "dir" then
             handleDirMesg(sender, msg)
+        elseif msg.type == "info" then
+            handleInfoMesg(sender, msg)
         end
         if connectedClients[sender] then
             connectedClients[sender].lastMessageTime = os.epoch("utc")
@@ -766,9 +779,6 @@ local dominationPercentage = 0.75
 
 local function broadcast(data)
     rednet.broadcast(data, protocol)
-    -- if host then -- loopback broadcasts
-    --     rednet.send(host, data, protocol)
-    -- end
 end
 
 local function runGame()
@@ -804,9 +814,9 @@ local function runGame()
     end
 end
 
-local function hostGame(hostname)
+local function hostGame(hname)
     isHost = true
-    rednet.open(modemSide)
+    hostname = hname
     rednet.host(protocol, hostname)
     print("Hosting game.")
     os.queueEvent("iworm_server_started")
@@ -814,19 +824,46 @@ local function hostGame(hostname)
     rednet.unhost(protocol)
 end
 
+---@param hostname string
+---@param name string
 local function hostAndJoin(hostname, name)
     term.clear()
     term.setCursorPos(1, 1)
     parallel.waitForAny(function() hostGame(hostname) end, function()
         os.pullEvent("iworm_server_started")
-        joinGame(name, hostname)
+        joinGame(name, os.computerID())
     end)
 end
+
+---@return {name:string,motd:string?,boardw:integer,boardh:integer,id:integer}[]
+local function getHosts()
+    term.write("Looking up hosts")
+    local hosts = { rednet.lookup(protocol) }
+    local hostsInfo = {}
+    for _, id in ipairs(hosts) do
+        term.write(".")
+        host = id
+        rednet.send(id, { type = "info" }, protocol)
+        local info = recieveFromHost("info_answer", 1)
+        if info then
+            info.id = id
+        end
+        hostsInfo[#hostsInfo + 1] = info
+    end
+    print()
+    return hostsInfo
+end
+
 
 local function joinMenu()
     local tui = require "touchui"
     local containers = require "touchui.containers"
     local input = require "touchui.input"
+    local lists = require "touchui.lists"
+
+    rootWin.setVisible(true)
+    draw.clear_line(1, rootWin)
+    local info = getHosts()
 
     local rootVbox = containers.vBox()
     rootVbox:setWindow(rootWin)
@@ -834,28 +871,43 @@ local function joinMenu()
     local name = ""
     rootVbox:addWidget(input.inputWidget("Name", nil, function(value)
         name = value
-    end))
-
-    local hostname
-    rootVbox:addWidget(input.inputWidget("Hostname?", nil, function(value)
-        hostname = value
-        if value == "" then
-            hostname = nil
+    end), 2)
+    local hostid = info[1] and info[1].id or nil
+    rootVbox:addWidget(tui.textWidget("Select Game:"), 1)
+    local hostList = lists.listWidget(info, 2, function(win, x, y, w, h, item, theme)
+        draw.set_col(theme.fg, theme.bg, win)
+        if item.id == hostid then
+            draw.set_col(theme.fg, theme.inputbg, win)
         end
-    end))
-    rootVbox:addWidget(tui.textWidget("Leave blank to accept first available game"))
+        draw.clear_line(y, win)
+        draw.text(x, y, ("[%d] %s"):format(item.id, item.name), win)
+        draw.clear_line(y + 1, win)
+        if item.motd then
+            draw.text(x, y + 1, item.motd, win)
+        end
+    end, function(index, item)
+        hostid = item.id
+    end)
+    rootVbox:addWidget(hostList)
+
+    rootVbox:addWidget(input.buttonWidget("Refresh", function(self)
+        rootWin.setVisible(true)
+        draw.clear_line(1, rootWin)
+        info = getHosts()
+        hostList:setTable(info)
+    end), 3)
 
     rootVbox:addWidget(input.buttonWidget("Join!", function(self)
-        if #name > 0 then
+        if #name > 0 and hostid then
             rootVbox.exit = true
         end
-    end))
+    end), 3)
 
     tui.run(rootVbox, false, nil, true)
 
     term.clear()
     term.setCursorPos(1, 1)
-    joinGame(name, hostname)
+    joinGame(name, hostid)
     sleep(3)
 end
 
@@ -895,12 +947,6 @@ local function hostMenu()
     scrollVbox:addWidget(heightInput, 2)
     heightInput:setValue(tostring(boardh))
 
-    -- local dominationInput = input.inputWidget("Domination %", function(s)
-    --     local n = tonumber(s)
-    --     return n and n >= 0 and n <= 1 --[[@as boolean]]
-    -- end, function(value)
-    --     dominationPercentage = tonumber(value) or dominationPercentage
-    -- end)
     local dominationLabel = tui.textWidget(" 50%", "c")
     local dominationInput = input.sliderWidget(0.5, 1, function(value)
         dominationPercentage = value
@@ -908,7 +954,7 @@ local function hostMenu()
     end, "Domination %")
     scrollVbox:addWidget(dominationInput, 2)
     scrollVbox:addWidget(dominationLabel, 1)
-    -- dominationInput:setValue(tostring(dominationPercentage))
+    dominationInput:setValue(dominationPercentage)
 
     local territoryKillToggle = input.toggleWidget("Territory Kill", function(state)
         territoryKill = state
@@ -949,6 +995,7 @@ local function rootMenu()
     rootVbox:addWidget(tui.textWidget("EMPIRES", "c", 1), 3)
     rootVbox:addWidget(tui.textWidget("OF", "c", 1), 3)
     rootVbox:addWidget(tui.textWidget("DIRT", "c", 1), 3)
+    rootVbox:addWidget(tui.textWidget("By ShreksHellraiser", "c"), 2)
 
     local option
 
@@ -979,11 +1026,14 @@ local allowedArgs = {
     height = { type = "value", description = "Board height" },
     dom = { type = "value", description = "Percentage of board owned to win [0,1]" },
     tick = { type = "value", description = "Tick delay in seconds" },
-    notk = { type = "flag", description = "Don't kill players when they are captured" }
+    notk = { type = "flag", description = "Don't kill players when they are captured" },
+    gui = { type = "flag", description = "Launch the graphical menu using touchui" },
+    tui = { type = "flag", description = "Launch the CLI menu" }
 }
 
 local function printHelp()
     print("EMPIRES OF DIRT")
+    print("By ShreksHellraiser")
     print("-- join name <hostname> [args]")
     print("Join a server with the given name. If hostname is not provided join the first found.")
     print("-- host hostname <name> [args]")
@@ -1028,6 +1078,61 @@ for i = 1, #args do
     end
 end
 
+local function tuiHostMenu()
+    term.write("Hostname? ")
+    local input
+    repeat
+        input = read()
+    until #input > 0
+    local hostname = input
+    term.write("Name? ")
+    repeat
+        input = read()
+    until #input > 0
+    local name = input
+    hostAndJoin(hostname, name)
+end
+
+local function tuiJoinGame()
+    term.write("Name? ")
+    local input
+    repeat
+        input = read()
+    until #input > 0
+    local name = input
+    local info = getHosts()
+    if #info == 0 then
+        print("No hosts found.")
+        sleep(1)
+        return
+    end
+    for _, v in ipairs(info) do
+        print(("[%u] %s"):format(v.id, v.name))
+        if v.motd then
+            print(("> %s"):format(v.motd))
+        end
+    end
+    term.write(("Host ID [%u]: "):format(info[1].id))
+    ---@type number?
+    local hostid = tonumber(read())
+    joinGame(name, hostid or info[1].id)
+end
+
+local function tuiRootMenu()
+    term.clear()
+    term.setCursorPos(1, 1)
+    print("EMPIRES OF DIRT")
+    print("By ShreksHellraiser")
+    print("Run with -help to see CLI usage.")
+    term.write("(J)oin/(h)ost? ")
+    local input = read()
+    if input:lower() == "h" then
+        tuiHostMenu()
+    else
+        tuiJoinGame()
+    end
+end
+
 local function handleArgs()
     if varArgs[1] == "host" then
         if #varArgs < 2 then
@@ -1054,42 +1159,14 @@ local function handleArgs()
         printHelp()
     elseif givenArgs.help then
         printHelp()
+    elseif givenArgs.tui then
+        tuiRootMenu()
+    elseif givenArgs.gui then
+        rootMenu()
     elseif remos then
         rootMenu()
     else
-        term.clear()
-        term.setCursorPos(1, 1)
-        print("EMPIRES OF DIRT")
-        print("Run with -help to see CLI usage.")
-        term.write("(J)oin/(h)ost? ")
-        local input = read()
-        if input:lower() == "h" then
-            term.write("Hostname? ")
-            repeat
-                input = read()
-            until #input > 0
-            local hostname = input
-            term.write("Name? ")
-            repeat
-                input = read()
-            until #input > 0
-            local name = input
-            hostAndJoin(hostname, name)
-        else
-            term.write("Name? ")
-            repeat
-                input = read()
-            until #input > 0
-            local name = input
-            print("Hostname? ")
-            term.write("Blank to search: ")
-            ---@type string?
-            local hostname = read()
-            if hostname == "" then
-                hostname = nil
-            end
-            joinGame(name, hostname)
-        end
+        tuiRootMenu()
     end
 end
 

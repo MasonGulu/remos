@@ -153,6 +153,12 @@ function sliderWidget__index:updateSlider(nx)
     self.onUpdate(self.min + (self.value * (self.max - self.min)))
 end
 
+---@param v integer
+function sliderWidget__index:setValue(v)
+    self.value = (v - self.min) / (self.max - self.min)
+    self.onUpdate(v)
+end
+
 function sliderWidget__index:draw()
     self.window.setVisible(false)
     draw.set_col(self.theme.fg, self.theme.bg, self.window)

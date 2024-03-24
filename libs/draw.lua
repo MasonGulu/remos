@@ -287,6 +287,13 @@ local function draw_blit(x, y, img, dev)
     end
 end
 
+---@param y integer
+---@param dev Window
+local function clear_line(y, dev)
+    dev.setCursorPos(1, y)
+    dev.clearLine()
+end
+
 return {
     line = line,
     aligned_cubic_line = aligned_cubic_line,
@@ -305,5 +312,6 @@ return {
     square = square,
     set_col = set_col,
     center_text = center_text,
-    draw_blit = draw_blit
+    draw_blit = draw_blit,
+    clear_line = clear_line
 }
