@@ -185,6 +185,7 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
     local function buttonIcon(onPress, icon)
         local button = input.buttonWidget("", onPress, nil, false, "c")
         button.draw = function(self)
+            draw.set_col(self.theme.fg, self.theme.bg, self.window)
             self.window.clear()
             draw.text(1, 1, "+", self.window)
             self.window.blit(icon(self.theme))
@@ -248,7 +249,7 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
         local newfileButton = buttonIcon(function(self)
             local filename = inputPopup("New File", ("At path %s"):format(path), "Name")
             if filename then
-                rootVbox.exit = true
+                tui.quit(rootBox)
                 if extension and not (filename:sub(- #extension) == extension) then
                     -- extension required and currently not in the filename
                     filename = ("%s.%s"):format(filename, extension)
