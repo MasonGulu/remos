@@ -730,14 +730,18 @@ local motd
 local hostname
 
 --- msg {type:"info"}
---- response {type:"info_answer", motd:string?, boardw: integer, boardh: integer}
+--- response {type:"info_answer", motd:string?, boardw: integer, boardh: integer, clients: integer, capacity: integer}
 local function handleInfoMesg(sender, msg)
+    local clientCount = 0
+    for _ in pairs(connectedClients) do clientCount = clientCount + 1 end
     rednet.send(sender, {
         type = "info_answer",
         name = hostname,
         motd = motd,
         boardw = boardw,
         boardh = boardh,
+        clients = clientCount,
+        capacity = 15
     }, protocol)
 end
 
@@ -835,7 +839,7 @@ local function hostAndJoin(hostname, name)
     end)
 end
 
----@return {name:string,motd:string?,boardw:integer,boardh:integer,id:integer}[]
+---@return {name:string,motd:string?,boardw:integer,boardh:integer,id:integer,players:integer,capacity:integer}[]
 local function getHosts()
     term.write("Looking up hosts")
     local hosts = { rednet.lookup(protocol) }
@@ -880,7 +884,9 @@ local function joinMenu()
             draw.set_col(theme.fg, theme.inputbg, win)
         end
         draw.clear_line(y, win)
-        draw.text(x, y, ("[%d] %s"):format(item.id, item.name), win)
+        draw.text(x, y,
+            ("[%d] %s - %dx%d - %d/%d"):format(item.id, item.name, item.boardw, item.boardh, item.clients, item.capacity),
+            win)
         draw.clear_line(y + 1, win)
         if item.motd then
             draw.text(x, y + 1, item.motd, win)
@@ -891,10 +897,17 @@ local function joinMenu()
     rootVbox:addWidget(hostList)
 
     rootVbox:addWidget(input.buttonWidget("Refresh", function(self)
-        rootWin.setVisible(true)
-        draw.clear_line(1, rootWin)
-        info = getHosts()
-        hostList:setTable(info)
+        if remos then
+            remos.addProcess(function()
+                info = getHosts()
+                hostList:setTable(info)
+            end, "EOD Refresh")
+        else
+            rootWin.setVisible(true)
+            draw.clear_line(1, rootWin)
+            info = getHosts()
+            hostList:setTable(info)
+        end
     end), 3)
 
     rootVbox:addWidget(input.buttonWidget("Join!", function(self)
