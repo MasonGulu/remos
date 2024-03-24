@@ -66,7 +66,9 @@ local function fileMenu(filePath)
 end
 
 while true do
-    local file = popups.filePopup("Browser", path, true, nil, true) --[[@as string]]
-    fileMenu(file)
-    path = file:sub(1, -(#fs.getName(file) + 1))
+    local file = popups.filePopup("Browser", path, true, nil, true)
+    if file then
+        fileMenu(file)
+        path = file:sub(1, -(#fs.getName(file) + 1))
+    end
 end
