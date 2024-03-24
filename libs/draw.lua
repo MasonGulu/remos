@@ -243,31 +243,31 @@ local function invert(device)
     set_col(bg, fg, device)
 end
 
+
 ---@param x integer
 ---@param y integer
 ---@param w integer
 ---@param h integer
 ---@param dev Window
 local function square(x, y, w, h, dev)
-    local topl = "\156"            -- inverse
-    local topr = "\147"            -- inverse
-    local caps = "\140"
+    local topl = string.char(0x97) -- normal
+    local topr = string.char(0x94)
+    local top  = string.char(0x83)
     local side = string.char(0x95) -- both (l/r)
-    local botl = "\141"
-    local botr = "\142"
+    local botl = string.char(0x8a) -- inverse
+    local bot  = string.char(0x8f)
+    local botr = string.char(0x85)
     if not dev then dev = win end -- formatter kept aligning assignment here.
+    text(x, y, topl, dev)
+    text(x + 1, y, top:rep(w - 2), dev)
     for dy = 1, h - 2 do
-        -- fill box
-        text(x, y + dy, (" "):rep(w), dev)
         text(x, y + dy, side, dev)
     end
-    text(x + 1, y, caps:rep(w - 2), dev)
-    text(x + 1, y + h - 1, caps:rep(w - 2), dev)
-    text(x, y + h - 1, botl, dev)
-    text(x + w - 1, y + h - 1, botr, dev)
-    text(x, y, topl, dev)
     invert(dev)
     text(x + w - 1, y, topr, dev)
+    text(x, y + h - 1, botl, dev)
+    text(x + 1, y + h - 1, bot:rep(w - 2), dev)
+    text(x + w - 1, y + h - 1, botr, dev)
     for dy = 1, h - 2 do
         text(x + w - 1, y + dy, side, dev)
     end

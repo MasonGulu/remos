@@ -150,10 +150,10 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
     rootVbox:addWidget(titleText, 1)
 
     local headerHBox = container.hBox()
-    local headerBox = container.framedBox(headerHBox)
-    rootVbox:addWidget(headerBox, 3)
+    rootVbox:addWidget(headerHBox, 3)
     local pathText = tui.textWidget(path, "l")
-    headerHBox:addWidget(pathText)
+    local headerBox = container.framedBox(pathText)
+    headerHBox:addWidget(headerBox)
     local updatePath
 
     ---@param theme table
@@ -183,12 +183,14 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
     ---@param icon fun(theme:table):string,string,string
     ---@return ButtonWidget
     local function buttonIcon(onPress, icon)
-        local button = input.buttonWidget("", onPress, nil, false, "c")
+        local button = input.buttonWidget("", onPress, nil, true, "c")
+        local oldDraw = button.draw
         button.draw = function(self)
+            oldDraw(self)
             draw.set_col(self.theme.fg, self.theme.bg, self.window)
-            self.window.clear()
-            draw.text(1, 1, "+", self.window)
+            draw.text(2, 2, "+", self.window)
             self.window.blit(icon(self.theme))
+            self.window.setVisible(true)
         end
         return button
     end
@@ -243,7 +245,7 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
                 updatePath(newpath)
             end
         end, folderIcon)
-        headerHBox:addWidget(newfolderButton, 4)
+        headerHBox:addWidget(newfolderButton, 5)
     end
     if write then
         local newfileButton = buttonIcon(function(self)
@@ -257,7 +259,7 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
                 selectedFile = fs.combine(path, filename)
             end
         end, itemIcon)
-        headerHBox:addWidget(newfileButton, 4)
+        headerHBox:addWidget(newfileButton, 5)
     end
 
     function updatePath(newPath)
