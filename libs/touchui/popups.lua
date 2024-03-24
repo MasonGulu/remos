@@ -98,11 +98,19 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension)
     local selectedFile
 
     local fileList = list.listWidget(fs.list(path), 1, function(win, x, y, w, h, item, theme)
+        win.setCursorPos(x, y)
         draw.set_col(theme.fg, theme.bg, win)
         if fs.isDir(fs.combine(path, item)) then
+            win.blit("\x83\x94", "14", "4" .. colors.toBlit(theme.bg))
             draw.set_col(theme.highlight, nil, win)
+        else
+            local col = colors.toBlit(theme.inputbg)
+            if theme.bg == colors.black then
+                col = colors.toBlit(theme.fg)
+            end
+            win.blit("\x82", colors.toBlit(theme.bg), col)
         end
-        draw.text(x, y, item, win)
+        draw.text(x + 2, y, item, win)
     end, function(index, item)
         local filePath = fs.combine(path, item)
         if fs.isDir(filePath) then
