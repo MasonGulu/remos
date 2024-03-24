@@ -164,13 +164,17 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
         return "\x83\x94", "14", "4" .. colors.toBlit(theme.bg)
     end
     ---@param theme table
+    ---@param luafile boolean?
     ---@return string
     ---@return string
     ---@return string
-    local function itemIcon(theme)
+    local function itemIcon(theme, luafile)
         local col = colors.toBlit(theme.inputbg)
         if theme.bg == colors.black then
             col = colors.toBlit(theme.fg)
+        end
+        if luafile then
+            col = colors.toBlit(colors.blue)
         end
         return "\x82", colors.toBlit(theme.bg), col
     end
@@ -202,7 +206,7 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
             win.blit(folderIcon(theme))
             draw.set_col(theme.highlight, nil, win)
         else
-            win.blit(itemIcon(theme))
+            win.blit(itemIcon(theme, item:sub(-4) == ".lua"))
         end
         draw.text(x + 2, y, item, win)
     end, function(index, item)
