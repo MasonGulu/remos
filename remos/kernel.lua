@@ -237,6 +237,9 @@ local function updateProcessWindow(process)
             systemProcess = true
         end
         process.x, process.y = x, y
+        if process.pid == bottombarpid then
+            process.y = 1
+        end
         process.window.reposition(x, y, w, h)
         if not systemProcess then
             process.y = 2
@@ -635,6 +638,37 @@ _G.remos = {
     end
 }
 
+--- multishell injection
+multishell.getCount = function()
+    return #apps
+end
+
+multishell.getCurrent = function()
+    return runningpid
+end
+
+multishell.getTitle = function(pid)
+    if processes[pid] then
+        return processes[pid].title
+    end
+end
+
+multishell.getFocus = function()
+    return focusedpid
+end
+
+multishell.launch = function(env, path, ...)
+    return addAppFile(path, runningpid, env, ...)
+end
+
+multishell.setFocus = function(pid)
+    setFocused(pid)
+end
+
+multishell.setTitle = function(pid, title)
+    setProcessTitle(pid, title)
+end
+
 ---- Internal API
 ---@class RemosInternalAPI
 local remosInternalAPI = {
@@ -673,6 +707,7 @@ local remosInternalAPI = {
     ---Set the pid of the which process is the bottom bar
     ---Internal because only init should set this.
     _setBottomBarPid = function(pid)
+        processes[pid].y = 1
         bottombarpid = pid
     end
 }

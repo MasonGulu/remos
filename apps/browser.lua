@@ -26,10 +26,11 @@ local function fileMenu(filePath)
     local label = "File Options"
     local attributes = fs.attributes(filePath)
     local attributeVbox = container.vBox()
-    attributeVbox:addWidget(tui.textWidget(("Path: %s"):format(filePath), "l"))
-    attributeVbox:addWidget(tui.textWidget(("Size: %d bytes"):format(attributes.size), "l"))
-    attributeVbox:addWidget(tui.textWidget(("Created: %s"):format(os.date("%D %T", attributes.created)), "l"))
-    attributeVbox:addWidget(tui.textWidget(("Modified: %s"):format(os.date("%D %T", attributes.modified)), "l"))
+
+    attributeVbox:addWidget(tui.textWidget(("Path: %s"):format(filePath), "l"), 2)
+    attributeVbox:addWidget(tui.textWidget(("Size: %d bytes"):format(attributes.size), "l"), 1)
+    attributeVbox:addWidget(tui.textWidget(("Created: %s"):format(os.date("%D %T", attributes.created)), "l"), 2)
+    attributeVbox:addWidget(tui.textWidget(("Modified: %s"):format(os.date("%D %T", attributes.modified)), "l"), 2)
 
     local i, item = popups.listPopup(label, fileOptions, 1, function(win, x, y, w, h, item, theme)
         draw.text(x, y, item, win)
@@ -66,7 +67,7 @@ local function fileMenu(filePath)
 end
 
 while true do
-    local file = popups.filePopup("Browser", path, true, nil, true)
+    local file = popups.filePopup("Browser", path, true, nil, true, nil, -1)
     if file then
         fileMenu(file)
         path = file:sub(1, -(#fs.getName(file) + 1))

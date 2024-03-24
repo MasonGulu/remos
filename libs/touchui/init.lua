@@ -155,7 +155,7 @@ end
 ---@return integer x
 ---@return integer y
 local function offsetMouse(root, x, y)
-    return x, y
+    return x - root.x + 1, y - root.y + 1
 end
 
 ---Quit running the UI

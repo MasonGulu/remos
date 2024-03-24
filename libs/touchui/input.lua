@@ -17,7 +17,7 @@ function buttonWidget__index:draw()
     draw.set_col(self.theme.fg, self.theme.bg, self.window)
     self.window.clear()
     if self.border then
-        draw.square(2, 1, self.w - 2, self.h, self.window)
+        draw.square(1, 1, self.w, self.h, self.window)
     end
     if self.alignment == "c" then
         draw.center_text(self.textY, self.label, self.window)

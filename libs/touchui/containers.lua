@@ -231,12 +231,14 @@ local genericScrollableBox_meta = { __index = genericScrollableBox__index }
 
 
 function genericScrollableBox__index:updateMaxScroll()
+    if not self.window then return end
     local dir = self[self.dir]
     self.maxScroll = math.max(self.totalHeight - dir, 0)
     self.barSize = math.floor(math.max(math.min(dir * (dir / self.totalHeight), dir), 1))
 end
 
 function genericScrollableBox__index:repositionWindow()
+    if not self.window then return end
     if self.dir == "h" then
         self.parentWindow.reposition(1, -self.scrolledY + 1, self.w - 1, self.totalHeight)
     else
@@ -465,7 +467,7 @@ local framedBox_meta = { __index = framedBox__index }
 
 ---@param self FramedBoxWidget
 local function updateContent(self)
-    self.contentWin = window.create(self.window, 3, 3, self.w - 4, self.h - 4)
+    self.contentWin = window.create(self.window, 2, 2, self.w - 2, self.h - 2)
     self.content:setWindow(self.contentWin)
 end
 
@@ -480,7 +482,7 @@ function framedBox__index:draw()
     self.window.setVisible(false)
     draw.set_col(self.theme.fg, self.theme.bg, self.window)
     self.window.clear()
-    draw.square(2, 2, self.w - 2, self.h - 2, self.window)
+    draw.square(1, 1, self.w, self.h, self.window)
     self.content:draw()
     self.window.setVisible(true)
     self.window.setVisible(false)
@@ -489,13 +491,13 @@ end
 local function genericMouseBox(name)
     ---@param self FramedBoxWidget
     return function(self, button, rx, ry)
-        return self.content[name](self.content, button, rx, ry - 2)
+        return self.content[name](self.content, button, rx - 1, ry - 1)
     end
 end
 
 framedBox__index.drag = genericMouseBox("drag")
 framedBox__index.dragStart = function(self, button, sx, sy, x, y)
-    return self.content:dragStart(button, sx - 2, sy - 2, x - 2, y - 2)
+    return self.content:dragStart(button, sx - 1, sy - 1, x - 1, y - 1)
 end
 framedBox__index.dragEnd = genericMouseBox("dragEnd")
 framedBox__index.shortPress = genericMouseBox("shortPress")
