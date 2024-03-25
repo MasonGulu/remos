@@ -5,10 +5,16 @@ local input = require("touchui.input")
 ---@type RemosInternalAPI
 local _remos = getmetatable(remos)
 
+assert(remos.pid == 1, "Remos INIT is already running.")
+
 settings.define("remos.dark_mode", {
     description = "Dark mode",
     type = "boolean",
     default = false
+})
+settings.define("remos.custom_theme_file", {
+    description = "File containting a custom theme table",
+    type = "string"
 })
 settings.define("remos.invert_bar_colors", {
     description = "Invert the colors of the top/bottom bars",
@@ -79,6 +85,8 @@ local topBarpid = _remos._addProcess(topBarProcess, "topBarUI", topBarWin)
 remos.setFocused(topBarpid)
 _remos._setTopBarPid(topBarpid)
 
+---@alias CustomTheme {bg:color?,fg:color?,highlight:color?,inputbg:color?,inputfg:color?,barbg:color?,barfg:color?}
+
 local function reloadSettings()
     darkMode = settings.get("remos.dark_mode")
     inverseButtons = settings.get("remos.invert_buttons")
@@ -95,10 +103,27 @@ local function reloadSettings()
         tui.theme.inputbg = colors.lightGray
         tui.theme.inputfg = colors.black
     end
+    local customThemeFile = settings.get("remos.custom_theme_file")
+    local customTheme
+    if customThemeFile then
+        customTheme = remos.loadTable(customThemeFile)
+    end
+    if customTheme then
+        tui.theme.bg = customTheme.bg or tui.theme.bg
+        tui.theme.fg = customTheme.fg or tui.theme.fg
+        tui.theme.highlight = customTheme.highlight or tui.theme.highlight
+        tui.theme.inputbg = customTheme.inputbg or tui.theme.inputbg
+        tui.theme.inputfg = customTheme.inputfg or tui.theme.inputfg
+    end
     barTheme = {}
+    barTheme.fg = tui.theme.fg
+    barTheme.bg = tui.theme.bg
+    if customTheme then
+        barTheme.fg = customTheme.barfg or barTheme.fg
+        barTheme.bg = customTheme.barbg or barTheme.bg
+    end
     if settings.get("remos.invert_bar_colors") then
-        barTheme.fg = tui.theme.bg
-        barTheme.bg = tui.theme.fg
+        barTheme.fg, barTheme.bg = barTheme.bg, barTheme.fg
     end
     bottomBarHBox:clearWidgets()
     if inverseButtons then

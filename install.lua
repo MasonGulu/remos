@@ -53,6 +53,9 @@ local files = {
     config = {
         ["home_apps.table"] = fromRepository "config/home_apps.table",
     },
+    themes = {
+        ["advanced.theme"] = fromRepository "themes/advanced.theme"
+    },
     apps = {
         ["eod.lua"] = fromRepository "apps/eod.lua",
         ["browser.lua"] = fromRepository "apps/browser.lua",

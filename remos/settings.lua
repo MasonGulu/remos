@@ -43,9 +43,23 @@ local function inputSetting(label, name, number)
     inputWidget:setValue(tostring(settings.get(name)))
 end
 
-label("UI", "c", 1)
+local function fileSetting(label, allowDirs, extension, name)
+    local fileInput = input.fileWidget(label, false, allowDirs, extension, function(value)
+        if value then
+            settings.set(name, value)
+        else
+            settings.unset(name)
+        end
+    end)
+    settingVbox:addWidget(fileInput, 3)
+    return fileInput
+end
+
+label("Theming", "c", 1)
 toggleSetting("Dark Mode", "remos.dark_mode")
 toggleSetting("Invert Bar Colors", "remos.invert_bar_colors")
+fileSetting("Custom Theme", false, "theme", "remos.custom_theme_file").selected = settings.get("remos.custom_theme_file")
+label("UI", "c", 1)
 toggleSetting("Inverse Buttons", "remos.invert_buttons")
 toggleSetting("Display in-game time", "remos.top_bar.use_ingame")
 local timeFormatOptions = { "%I:%M %p", "%R", "%r", "%T" }
