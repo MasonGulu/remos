@@ -20,8 +20,12 @@ local files = {
         ["iconedit_icon_small.blit"] = fromRepository "icons/iconedit_icon_small.blit",
         ["unknown_icon_large.blit"] = fromRepository "icons/unknown_icon_large.blit",
         ["unknown_icon_small.blit"] = fromRepository "icons/unknown_icon_small.blit",
-        ["settings_icon.blit"] = fromRepository "icons/settings_icon.blit",
+        ["settings_icon_small.blit"] = fromRepository "icons/settings_icon_small.blit",
+        ["settings_icon_large.blit"] = fromRepository "icons/settings_icon_large.blit",
+        ["taskmon_icon_small.blit"] = fromRepository "icons/taskmon_icon_small.blit",
+        ["taskmon_icon_large.blit"] = fromRepository "icons/taskmon_icon_large.blit",
         ["shell_icon_small.blit"] = fromRepository "icons/shell_icon_small.blit",
+        ["shell_icon_large.blit"] = fromRepository "icons/shell_icon_large.blit",
         ["browser_icon_large.blit"] = fromRepository "icons/browser_icon_large.blit",
         ["browser_icon_small.blit"] = fromRepository "icons/browser_icon_small.blit"
     },
