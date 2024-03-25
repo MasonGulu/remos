@@ -204,7 +204,6 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
 
     local fileList = list.listWidget(fs.list(path), 1, function(win, x, y, w, h, item, theme)
         win.setCursorPos(x, y)
-        draw.set_col(theme.fg, theme.bg, win)
         if fs.isDir(fs.combine(path, item)) then
             win.blit(folderIcon(theme))
             draw.set_col(theme.highlight, nil, win)
@@ -212,6 +211,7 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
             win.blit(itemIcon(theme, item:sub(-4) == ".lua"))
         end
         draw.text(x + 2, y, item, win)
+        draw.set_col(theme.fg, theme.bg, win)
     end, function(index, item)
         local filePath = fs.combine(path, item)
         if fs.isDir(filePath) then
