@@ -83,11 +83,11 @@ local function shortcutMenu(index, label, path, iconSmallFile, iconLargeFile)
     pathPicker.selected = path
     rootVbox:addWidget(pathPicker, 2)
 
-    local iconSmallFilePicker = input.fileWidget("Small Icon", nil, nil, "blit")
+    local iconSmallFilePicker = input.fileWidget("Small Icon", nil, nil, "blit", nil, "icons")
     iconSmallFilePicker.selected = iconSmallFile
     rootVbox:addWidget(iconSmallFilePicker, 2)
 
-    local iconLargeFilePicker = input.fileWidget("Large Icon", nil, nil, "blit")
+    local iconLargeFilePicker = input.fileWidget("Large Icon", nil, nil, "blit", nil, "icons")
     iconLargeFilePicker.selected = iconLargeFile
     rootVbox:addWidget(iconLargeFilePicker, 2)
 

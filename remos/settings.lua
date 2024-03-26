@@ -39,26 +39,43 @@ local function inputSetting(label, name, number)
         end
         settings.set(name, value)
     end)
-    settingVbox:addWidget(inputWidget, 3)
+    settingVbox:addWidget(inputWidget, 2)
     inputWidget:setValue(tostring(settings.get(name)))
 end
 
-local function fileSetting(label, allowDirs, extension, name)
+local function fileSetting(label, allowDirs, extension, name, path)
     local fileInput = input.fileWidget(label, false, allowDirs, extension, function(value)
         if value then
             settings.set(name, value)
         else
             settings.unset(name)
         end
-    end)
+    end, path)
     settingVbox:addWidget(fileInput, 3)
     return fileInput
 end
 
+
+label("Home", "c", 1)
+toggleSetting("Large Home Icons", "remos.home.large_icons")
+settingVbox:addWidget(input.buttonWidget("Add Shortcut", function(self)
+    os.queueEvent("add_home_shortcut")
+    os.queueEvent("home_button")
+end), 3)
+local saveButton = input.buttonWidget("Save", function(self)
+    settings.save()
+    os.queueEvent("settings_update")
+end)
+rootVbox:addWidget(saveButton, 3)
+
+
 label("Theming", "c", 1)
 toggleSetting("Dark Mode", "remos.dark_mode")
 toggleSetting("Invert Bar Colors", "remos.invert_bar_colors")
-fileSetting("Custom Theme", false, "theme", "remos.custom_theme_file").selected = settings.get("remos.custom_theme_file")
+fileSetting("Custom Theme", false, "theme", "remos.custom_theme_file", "themes").selected = settings.get(
+    "remos.custom_theme_file")
+
+
 label("UI", "c", 1)
 toggleSetting("Inverse Buttons", "remos.invert_buttons")
 toggleSetting("Display in-game time", "remos.top_bar.use_ingame")
@@ -71,23 +88,19 @@ local timeFormatWidget = input.selectionWidget("Time Format", timeFormatOptions,
         draw.text(x + w - #formatted, y, formatted, win)
     end, settingUpdateOnEvent("remos.top_bar.time_format"))
 settingVbox:addWidget(timeFormatWidget, 2)
-inputSetting("UTC Timezone", "remos.timezone", tonumber)
+inputSetting("UTC Timezone", "remos.timezone", true)
+toggleSetting("Close All Button*", "remos.menu.close_all_button")
+inputSetting("Menu Height*", "remos.menu.item_height", true)
+
+
+label("Advanced", "c", 1)
 ---@diagnostic disable-next-line: undefined-global
 if periphemu then
-    toggleSetting("Use ns time units*", "remos.use_nano_seconds")
+    toggleSetting("Use ns Time Units*", "remos.use_nano_seconds")
 end
-label("Home", "c", 1)
-toggleSetting("Large Home Icons", "remos.home.large_icons")
-
-settingVbox:addWidget(input.buttonWidget("Add Shortcut", function(self)
-    os.queueEvent("add_home_shortcut")
-    os.queueEvent("home_button")
-end), 3)
-
-local saveButton = input.buttonWidget("Save", function(self)
-    settings.save()
-    os.queueEvent("settings_update")
-end)
-rootVbox:addWidget(saveButton, 3)
+toggleSetting("Cleanup on Focus Lost*", "remos.autoCleanupOnFocusLoss")
+label("Cleanup dead apps when focus is lost.")
+toggleSetting("Cleanup Dead Apps*", "remos.autoCloseDeadApps")
+label("Cleanup apps as they die.")
 
 tui.run(rootVbox, nil, nil, true)

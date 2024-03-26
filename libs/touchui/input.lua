@@ -351,7 +351,8 @@ end
 
 function fileWidget__index:shortPress(button, x, y)
     if tui.withinSquare(x, y, self.w - #browseString, 1, self.w, 1) then
-        self.selected = require("touchui.popups").filePopup(("Picking %s"):format(self.label), nil, false, self.write,
+        self.selected = require("touchui.popups").filePopup(("Picking %s"):format(self.label), self.path, false,
+            self.write,
             self.allowDirs, self.extension)
         if self.onUpdate then
             self.onUpdate(self.selected)
@@ -366,8 +367,9 @@ end
 ---@param allowDirs boolean?
 ---@param extension string?
 ---@param onUpdate fun(value:string?)?
+---@param path string?
 ---@return FileWidget
-local function fileWidget(label, write, allowDirs, extension, onUpdate)
+local function fileWidget(label, write, allowDirs, extension, onUpdate, path)
     ---@class FileWidget
     ---@field selected string?
     local self = setmetatable(tui.emptyWidget(), fileWidget_meta)
@@ -376,6 +378,7 @@ local function fileWidget(label, write, allowDirs, extension, onUpdate)
     self.label = label
     self.extension = extension
     self.onUpdate = onUpdate
+    self.path = path
     return self
 end
 
