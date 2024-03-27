@@ -35,10 +35,12 @@ mediaButtonsHbox:addWidget(playPauseButton)
 mediaButtonsHbox:addWidget(input.buttonWidget("\187", function(self)
     os.queueEvent("remos_skip_forward_button")
 end))
-mediaHbox:addWidget(input.sliderWidget(0, 2, function(value)
+local volumeSlider = input.sliderWidget(0, 2, function(value)
     os.queueEvent("remos_volume_change", value)
     _G.remos.volume = value
-end))
+end)
+mediaHbox:addWidget(volumeSlider)
+volumeSlider:setValue(remos.volume)
 
 local inbox = list.listWidget(_remos._notifications, 3,
     function(win, x, y, w, h, item, theme)

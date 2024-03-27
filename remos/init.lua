@@ -85,12 +85,18 @@ local function notificationText()
 end
 
 ---@type TextWidget
-local timeLabel, periphLabel, notificationLabel
+local timeLabel, notificationLabel
+---@type ButtonWidget
+local periphLabel
 local topBarHBox = container.hBox()
 local topBarProcess = function()
     topBarHBox:setWindow(topBarWin)
     if pocket then
-        periphLabel = tui.textWidget(periphText(), "l")
+        periphLabel = input.buttonWidget(periphText(), function(self)
+            pcall(pocket.equipBack)
+        end, function(self)
+            pcall(pocket.unequipBack)
+        end, false, "l")
         topBarHBox:addWidget(periphLabel, 2)
     end
     timeLabel = tui.textWidget(timeText(), "l")
@@ -99,16 +105,16 @@ local topBarProcess = function()
     topBarHBox:addWidget(notificationLabel)
     topBarHBox:setTheme(barTheme)
     tui.run(topBarHBox, false, function(...)
-        local e, _, _, y = ...
+        local e, _, x, y = ...
         if e == "remos_notification" then
             notificationLabel:updateText(notificationText())
         elseif e == "remos_peripheral" and pocket then
-            periphLabel:updateText(periphText())
+            periphLabel:setLabel(periphText())
             periphLabel:setTheme({
                 fg = #_remos._peripheralStatus.usedBy > 0 and remos.theme.highlight or remos.theme.barfg,
                 bg = remos.theme.barbg
             })
-        elseif e == "mouse_click" and y == 1 then
+        elseif e == "mouse_click" and y == 1 and x > 1 then
             os.queueEvent("remos_notification_pane")
         end
     end)

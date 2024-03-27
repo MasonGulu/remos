@@ -774,18 +774,28 @@ local function assertPeripheralOwnership()
     end
 end
 
+local function assertCanChangePeripheral()
+    if not (#peripheralStatus.usedBy == 0 or
+            #peripheralStatus.usedBy == 1 and findInArray(peripheralStatus.usedBy, runningpid)) then
+        error("Peripheral is being used by other and cannot be ejected.", 2)
+    end
+end
+
 --- Pocket injection
 if pocket then
     local oldequip = pocket.equipBack
     local oldunequip = pocket.unequipBack
     _G.pocket.equipBack = function()
-        assertPeripheralOwnership()
+        assertCanChangePeripheral()
         local v = oldequip()
         updatePeripheral()
         return v
     end
     _G.pocket.unequipBack = function()
-        assertPeripheralOwnership()
+        assertCanChangePeripheral()
+        if #peripheralStatus.usedBy > 1 then
+            error("This peripheral is being used by others.")
+        end
         local v = oldunequip()
         updatePeripheral()
         return v
