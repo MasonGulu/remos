@@ -7,6 +7,9 @@ To install simply run `wget run https://raw.githubusercontent.com/MasonGulu/remo
 
 If you find incompatibilites that are not listed below please report them. I can't promise 100% compatibility, but I'd like it to be as close as possible.
 
+## Usage Tips
+* Mouse drags determine their direction based on the first character moved to. If you want to swipe left/right, the first character you drag into MUST be left or right, afterwards it does not matter.
+
 ## Remos Specific Features
 * Familiar Android-like interface
 * High amounts of customizations.
@@ -86,3 +89,5 @@ end), 3) -- passing in a height here
 
 tui.run(rootvbox)
 ```
+
+Rather than the concept of mouse clicks you listen for short and long presses. For accessibilities' sake by default right clicks are included as long presses, but you may pass an argument into `tui.run` to disable this behavior.

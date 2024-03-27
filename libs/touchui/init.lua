@@ -23,7 +23,7 @@ local strings = require("cc.strings")
 local expect = require("cc.expect").expect
 
 
-local LONG_PRESS_TIME = 200
+local LONG_PRESS_TIME = 300
 local TIMEOUT = 5000
 
 local theme = (_G.remos and _G.remos.theme) or {
@@ -170,11 +170,16 @@ end
 ---@param allowBack boolean?
 ---@param onEvent fun(...:any)?
 ---@param resizeToTerm boolean? resize the root.window to match term's size on term_resize
-local function run(root, allowBack, onEvent, resizeToTerm)
+---@param rightClickLongPress boolean? default true
+local function run(root, allowBack, onEvent, resizeToTerm, rightClickLongPress)
     expect(1, root, "table")
     expect(2, allowBack, "boolean", "nil")
     expect(3, onEvent, "function", "nil")
     expect(4, resizeToTerm, 'boolean', "nil")
+    expect(5, rightClickLongPress, "boolean", "nil")
+    if rightClickLongPress == nil then
+        rightClickLongPress = true
+    end
     local dragging = false
     ---@type integer
     local clickStartTime = os.epoch("utc")
@@ -221,7 +226,7 @@ local function run(root, allowBack, onEvent, resizeToTerm)
                 if time - clickStartTime + LONG_PRESS_TIME > TIMEOUT then
                     clickStartTime = time -- too long since mouse_click
                 end
-                if clickStartTime + LONG_PRESS_TIME <= time then
+                if (e.button == 2 and rightClickLongPress) or clickStartTime + LONG_PRESS_TIME <= time then
                     root:longPress(e.button, offsetMouse(root, e.x, e.y))
                 else
                     root:shortPress(e.button, offsetMouse(root, e.x, e.y))

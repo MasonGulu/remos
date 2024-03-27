@@ -148,7 +148,6 @@ function sliderWidget__index:setWindow(win)
 end
 
 function sliderWidget__index:updateSlider(nx)
-    tui.log("nx = %d, self.x = %d, self.sliderX = %d", nx, self.x, self.sliderX)
     nx = nx - self.sliderX
     self.value = math.min(math.max(nx / (self.sliderW - 1), 0), 1)
     self.onUpdate(self.min + (self.value * (self.max - self.min)))
