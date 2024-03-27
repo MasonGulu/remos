@@ -39,8 +39,36 @@ local apps = {}
 local focusedpid
 local runningpid = 0
 
-local menupid, homepid
+local menupid, homepid, notificationpid, initpid
 local bottombarpid, topbarpid
+
+---@class Notification
+---@field title string
+---@field content string
+---@field pid integer
+---@field icon string
+
+---@type Notification[]
+local notifications = {}
+---@type {attached:"speaker"|"modem"|nil,usedBy:integer[],playing:string?,paused:boolean?}
+local peripheralStatus = {
+    usedBy = {}
+}
+
+local oldwrap = peripheral.wrap
+local function updatePeripheral()
+    if not pocket then
+        return
+    end
+    os.queueEvent("remos_peripheral")
+    local p = oldwrap("back")
+    if not p then
+        peripheralStatus.attached = nil
+        return
+    end
+    peripheralStatus.attached = peripheral.getType(p) --[[@as "modem"|"speaker"]]
+end
+updatePeripheral()
 
 local isRunning = true
 
@@ -156,7 +184,7 @@ local focusedEventLUT = {
     "char",
     "mouse_scroll",
     "key_up",
-    "back_button",
+    "remos_back_button",
     "file_transfer"
 }
 for k, v in ipairs(focusedEventLUT) do focusedEventLUT[v] = true end
@@ -195,6 +223,13 @@ local function mouseWithinAppSpace(x, y)
     return y < termH and y > 1
 end
 
+---Check if a process is critical
+---@param pid integer
+local function isCriticalProcess(pid)
+    return pid == topbarpid or pid == bottombarpid or pid == menupid or pid == homepid or pid == notificationpid or
+        pid == initpid
+end
+
 ---Determine whether a given process has received the mouse_click event
 ---If they haven't, then they should not be sent
 ---@param e any[]
@@ -203,7 +238,9 @@ local function shouldRecieveEvent(e, process)
     local focused = isFocusedEvent(e)
     local matchesFilter = process.filter == nil or e[1] == process.filter or e[1] == "terminate"
     if (focused and process.focused) or not focused then
-        if e[1] == "mouse_click" or e[1] == "mouse_scroll" then
+        if e[1] == "terminate" then
+            return focusedpid == process.pid and not isCriticalProcess(process.pid) -- only send to the focused app
+        elseif e[1] == "mouse_click" or e[1] == "mouse_scroll" then
             return matchesFilter and (not process.app or mouseWithinAppSpace(e[3], e[4]))
         elseif mouseEventLUT[e[1]] then
             return process.recievedMouseClick and matchesFilter and (not process.app or mouseWithinAppSpace(e[3], e[4]))
@@ -213,6 +250,19 @@ local function shouldRecieveEvent(e, process)
     return false
 end
 
+---Find an element in an array
+---@generic T:any
+---@param t T[]
+---@param v T
+---@return integer?
+local function findInArray(t, v)
+    for i, v2 in ipairs(t) do
+        if v == v2 then
+            return i
+        end
+    end
+end
+
 ---Remove an element from an array
 ---@generic T:any
 ---@param t T[]
@@ -220,11 +270,10 @@ end
 ---@return boolean success
 local function removeFromArray(t, v)
     expect(1, t, "table")
-    for i, v2 in pairs(t) do
-        if v == v2 then
-            table.remove(t, i)
-            return true
-        end
+    local i = findInArray(t, v)
+    if i then
+        table.remove(t, i)
+        return true
     end
     return false
 end
@@ -308,12 +357,6 @@ end
 
 local kernelStartTime = epoch()
 
----Check if a process is critical
----@param pid integer
-local function isCriticalProcess(pid)
-    return pid == topbarpid or pid == bottombarpid or pid == menupid or pid == homepid
-end
-
 local popup, setFocused, cleanupProcess
 ---Resume a given process with given arguments, doesn't check filter
 ---@param process Process
@@ -335,9 +378,7 @@ local function resumeProcess(process, ...)
     updateProcessStats(process, startTime)
     runningpid = 0 -- Kernel running
     local e = { ... }
-    if e[1] == "terminate" then
-        process.state = "terminated"
-    elseif not ok then
+    if not ok and e[1] ~= "terminate" then
         process.state = "errored"
         local t = debug.traceback(process.coro, err)
         logError(t)
@@ -363,6 +404,8 @@ local function resumeProcess(process, ...)
     end
     if coroutine.status(process.coro) == "dead" then
         -- normal exit
+        removeFromArray(peripheralStatus.usedBy, process.pid)
+        updatePeripheral()
         if process.state == "alive" then
             process.state = "dead"
         end
@@ -395,6 +438,8 @@ function cleanupProcess(pid)
     local process = processes[pid]
     if process then
         terminateProcess(pid)
+        removeFromArray(peripheralStatus.usedBy, pid)
+        updatePeripheral()
         processes[pid] = nil
         if process.app then
             removeFromArray(apps, process)
@@ -471,7 +516,7 @@ local function tickProcess(e, process)
             return
         end
     end
-    if process.pid == menupid and #apps == 0 then
+    if focusedpid == menupid and #apps == 0 then
         setFocused(homepid) -- if there are no apps open, redirect to home
     end
 end
@@ -482,11 +527,9 @@ local function runProcesses()
         updateProcessStats(processes[0], kernelStartTime)
         local e = table.pack(os.pullEventRaw())
         kernelStartTime = epoch()
-        if e[1] == "terminate" then
-            -- TODO
-        elseif e[1] == "back_button" and focusedpid == menupid then
+        if e[1] == "remos_back_button" and focusedpid == menupid then
             setFocused(homepid)
-        elseif e[1] == "menu_button" and focusedpid == menupid then
+        elseif e[1] == "remos_menu_button" and focusedpid == menupid then
             setFocused((apps[1] or { pid = homepid }).pid)
         else
             if e[1] == "term_resize" then
@@ -611,10 +654,33 @@ _G.remos = {
         terminateOnFocusLoss(runningpid)
     end,
     popup = popup,
+    ---Queue a notification
+    ---@param icon string Single character icon
+    ---@param content string
+    notification = function(icon, content)
+        notifications[#notifications + 1] = {
+            content = content,
+            icon = icon,
+            pid = runningpid,
+            title = processes[runningpid].title
+        }
+        os.queueEvent("remos_notification")
+    end,
+    ---Set information about the playing audio
+    ---@param title string?
+    ---@param paused boolean?
+    setPlaying = function(title, paused)
+        peripheralStatus.playing = title
+        peripheralStatus.paused = paused
+        os.queueEvent("remos_peripheral")
+    end,
 
     --- variables to get information about the current process
     pid = 0,
     ppid = 0,
+
+    --- audio volume global
+    volume = 1,
 
     ---- Random utilities
 
@@ -701,6 +767,42 @@ _G.remos = {
     end
 }
 
+local function assertPeripheralOwnership()
+    if not findInArray(peripheralStatus.usedBy, runningpid) and peripheralStatus.attached == "speaker" and #peripheralStatus.usedBy > 0 then
+        local usedby = peripheralStatus.usedBy[1]
+        error(("Peripheral is in use by %s (pid:%d)."):format(processes[usedby].title, usedby), 2)
+    end
+end
+
+--- Pocket injection
+if pocket then
+    local oldequip = pocket.equipBack
+    local oldunequip = pocket.unequipBack
+    _G.pocket.equipBack = function()
+        assertPeripheralOwnership()
+        local v = oldequip()
+        updatePeripheral()
+        return v
+    end
+    _G.pocket.unequipBack = function()
+        assertPeripheralOwnership()
+        local v = oldunequip()
+        updatePeripheral()
+        return v
+    end
+    _G.peripheral.wrap = function(side)
+        if side ~= "back" then
+            return oldwrap(side)
+        end
+        assertPeripheralOwnership()
+        updatePeripheral() -- ensure the peripheral type is up to date
+        peripheralStatus.usedBy[#peripheralStatus.usedBy + 1] = runningpid
+        peripheralStatus.playing = nil
+        peripheralStatus.paused = true
+        return oldwrap(side)
+    end
+end
+
 --- multishell injection
 --- TODO fix this, it does not work
 
@@ -759,6 +861,13 @@ local remosInternalAPI = {
         removeFromArray(apps, processes[pid])
         homepid = pid
     end,
+    ---Set the pid of the which process is the notification tray
+    ---Internal because only init should set this.
+    ---@param pid integer
+    _setNotificationPid = function(pid)
+        removeFromArray(apps, processes[pid])
+        notificationpid = pid
+    end,
     ---Set the pid of the which process is "menu"
     ---Internal because only init should set this.
     ---@param pid integer
@@ -776,7 +885,11 @@ local remosInternalAPI = {
     _setBottomBarPid = function(pid)
         processes[pid].y = 1
         bottombarpid = pid
-    end
+    end,
+    ---Expose the status of the peripheral to the top bar
+    _peripheralStatus = peripheralStatus,
+    ---Expose the notifications to the top bar + notificationPane application
+    _notifications = notifications
 }
 
 setmetatable(_G.remos, remosInternalAPI)
@@ -814,7 +927,7 @@ processes[0] = {
     x = 1,
     y = 1
 }
-local initpid = addProcess(assert(loadfile("remos/init.lua", "t", _ENV)), "INIT", 0)
+initpid = addProcess(assert(loadfile("remos/init.lua", "t", _ENV)), "INIT", 0)
 processes[initpid].file = "/remos/init.lua"
 
 os.queueEvent("remos_boot")

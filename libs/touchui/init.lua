@@ -118,7 +118,7 @@ function textWidget__index:draw()
         elseif self.alignment == "l" then
             x = 1
         elseif self.alignment == "r" then
-            x = self.w - (#t * charw)
+            x = self.w - (#t * charw) + 1
         end
         if self.scale == 0 then
             draw.text(x, i, t, self.window)
@@ -227,7 +227,7 @@ local function run(root, allowBack, onEvent, resizeToTerm)
                     root:shortPress(e.button, offsetMouse(root, e.x, e.y))
                 end
             end
-        elseif e.event == "back_button" and allowBack then
+        elseif e.event == "remos_back_button" and allowBack then
             return
         elseif e.event == "mouse_scroll" then
             root:scroll(e.dir, offsetMouse(root, e.x, e.y))

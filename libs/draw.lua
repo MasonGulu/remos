@@ -51,7 +51,7 @@ end
 local function center_text(y, t, dev)
     dev = dev or win
     local w = dev.getSize()
-    text(math.floor((w - #t) / 2), y, t, dev)
+    text(math.ceil((w - #t) / 2), y, t, dev)
 end
 
 ---@param dev Window|term

@@ -37,13 +37,13 @@ local bottomBarWin = window.create(term.current(), 1, termH, termW, 1)
 local bottomBarHBox = container.hBox()
 local menu_button, home_button, back_button
 menu_button = input.buttonWidget("\127", function()
-    os.queueEvent("menu_button")
+    os.queueEvent("remos_menu_button")
 end, function() end, false)
 home_button = input.buttonWidget("\186", function()
-    os.queueEvent("home_button")
+    os.queueEvent("remos_home_button")
 end, function() end, false)
 back_button = input.buttonWidget("<", function()
-    os.queueEvent("back_button")
+    os.queueEvent("remos_back_button")
 end, function() end, false)
 bottomBarHBox:setWindow(bottomBarWin)
 bottomBarHBox:setTheme(barTheme)
@@ -71,15 +71,47 @@ local function timeText()
     return os.date(settings.get("remos.top_bar.time_format"), time / 1000) --[[@as string]]
 end
 
+local function periphText()
+    local attached = _remos._peripheralStatus.attached
+    return attached == "modem" and "\23" or attached == "speaker" and "\14" or "_"
+end
+
+local function notificationText()
+    local t = ""
+    for i, v in ipairs(_remos._notifications) do
+        t = t .. v.icon
+    end
+    return t
+end
+
 ---@type TextWidget
-local timeLabel
+local timeLabel, periphLabel, notificationLabel
 local topBarHBox = container.hBox()
 local topBarProcess = function()
     topBarHBox:setWindow(topBarWin)
+    if pocket then
+        periphLabel = tui.textWidget(periphText(), "l")
+        topBarHBox:addWidget(periphLabel, 2)
+    end
     timeLabel = tui.textWidget(timeText(), "l")
     topBarHBox:addWidget(timeLabel)
+    notificationLabel = tui.textWidget(notificationText(), "r")
+    topBarHBox:addWidget(notificationLabel)
     topBarHBox:setTheme(barTheme)
-    tui.run(topBarHBox, false)
+    tui.run(topBarHBox, false, function(...)
+        local e, _, _, y = ...
+        if e == "remos_notification" then
+            notificationLabel:updateText(notificationText())
+        elseif e == "remos_peripheral" and pocket then
+            periphLabel:updateText(periphText())
+            periphLabel:setTheme({
+                fg = #_remos._peripheralStatus.usedBy > 0 and remos.theme.highlight or remos.theme.barfg,
+                bg = remos.theme.barbg
+            })
+        elseif e == "mouse_click" and y == 1 then
+            os.queueEvent("remos_notification_pane")
+        end
+    end)
 end
 local topBarpid = _remos._addProcess(topBarProcess, "topBarUI", topBarWin)
 remos.setFocused(topBarpid)
@@ -125,6 +157,8 @@ local function reloadSettings()
     if settings.get("remos.invert_bar_colors") then
         barTheme.fg, barTheme.bg = barTheme.bg, barTheme.fg
     end
+    tui.theme.barfg = barTheme.fg
+    tui.theme.barbg = barTheme.bg
     bottomBarHBox:clearWidgets()
     if inverseButtons then
         bottomBarHBox:addWidget(menu_button)
@@ -137,6 +171,12 @@ local function reloadSettings()
     end
     bottomBarHBox:setTheme(barTheme)
     topBarHBox:setTheme(barTheme)
+    if periphLabel then
+        periphLabel:setTheme({
+            fg = #_remos._peripheralStatus.usedBy > 0 and remos.theme.highlight or remos.theme.barfg,
+            bg = remos.theme.barbg
+        })
+    end
     _G.remos.theme = tui.theme
 end
 reloadSettings()
@@ -144,22 +184,26 @@ reloadSettings()
 local menupid = assert(remos.addAppFile("remos/menu.lua"))
 _remos._setMenuPid(menupid)
 
+local notificationpid = assert(remos.addAppFile("remos/notificationTray.lua"))
+_remos._setNotificationPid(notificationpid)
+
 local homepid = assert(remos.addAppFile("remos/home.lua"))
 _remos._setHomePid(homepid)
 
+
 local timer = os.startTimer(1)
 while true do
-    local e, id = os.pullEvent()
-    if e == "menu_button" then
+    local e, id, _, y = os.pullEvent()
+    if e == "remos_menu_button" then
         remos.setFocused(menupid)
-    elseif e == "home_button" then
-        -- remos.addAppFile("rom/programs/shell.lua")
-        -- remos.addAppFile("browser.lua")
+    elseif e == "remos_home_button" then
         remos.setFocused(homepid)
     elseif e == "timer" and id == timer then
         timer = os.startTimer(1)
     elseif e == "settings_update" then
         reloadSettings()
+    elseif e == "remos_notification_pane" then
+        remos.setFocused(notificationpid)
     end
     timeLabel:updateText(timeText())
 end

@@ -287,7 +287,7 @@ local function filePopup(label, path, mandatory, write, allowDirs, extension, pa
     updatePath(path)
 
     tui.run(rootBox, not mandatory, function(event)
-        if event == "back_button" then
+        if event == "remos_back_button" then
             if mandatory and (path == "" or path == "/") then
                 -- already at the root
                 rootBox.exit = true

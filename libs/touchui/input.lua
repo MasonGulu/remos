@@ -23,7 +23,7 @@ function buttonWidget__index:draw()
         draw.center_text(self.textY, self.label, self.window)
     elseif self.alignment == "l" then
         local left = 1
-        if self.border then left = 3 end
+        if self.border then left = 2 end
         draw.text(left, self.textY, self.label, self.window)
     elseif self.alignment == "r" then
         local right = self.w - 2
@@ -148,8 +148,9 @@ function sliderWidget__index:setWindow(win)
 end
 
 function sliderWidget__index:updateSlider(nx)
-    nx = nx - self.x
-    self.value = math.min(math.max((nx - self.sliderX + 1) / (self.sliderW - 1), 0), 1)
+    tui.log("nx = %d, self.x = %d, self.sliderX = %d", nx, self.x, self.sliderX)
+    nx = nx - self.sliderX
+    self.value = math.min(math.max(nx / (self.sliderW - 1), 0), 1)
     self.onUpdate(self.min + (self.value * (self.max - self.min)))
 end
 

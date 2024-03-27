@@ -51,7 +51,7 @@ if settings.get("remos.menu.close_all_button") then
     local closeAllButton = input.buttonWidget("Close All", function(self)
         local apps = remos.deepClone(_remos._apps)
         for id, proc in ipairs(apps) do
-            remos.terminateProcess(proc.pid)
+            remos.cleanupProcess(proc.pid)
         end
     end, nil, true, "c")
     rootVbox:addWidget(closeAllButton, 3)

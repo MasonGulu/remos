@@ -9,34 +9,33 @@ local function fromRepository(url)
 end
 
 local files = {
+    apps = {
+        ["eod.lua"] = fromRepository "apps/eod.lua",
+        ["browser.lua"] = fromRepository "apps/browser.lua",
+        ["iconedit.lua"] = fromRepository "apps/iconedit.lua",
+    },
+    config = {
+        ["home_apps.table"] = fromRepository "config/home_apps.table",
+    },
     icons = {
+        ["browser_icon_large.blit"] = fromRepository "icons/browser_icon_large.blit",
+        ["browser_icon_small.blit"] = fromRepository "icons/browser_icon_small.blit",
         ["default_icon_large.blit"] = fromRepository "icons/default_icon_large.blit",
         ["default_icon_small.blit"] = fromRepository "icons/default_icon_small.blit",
-        ["worm_icon_large.blit"] = fromRepository "icons/worm_icon_large.blit",
-        ["worm_icon_small.blit"] = fromRepository "icons/worm_icon_small.blit",
         ["eod_icon_large.blit"] = fromRepository "icons/eod_icon_large.blit",
         ["eod_icon_small.blit"] = fromRepository "icons/eod_icon_small.blit",
         ["iconedit_icon_large.blit"] = fromRepository "icons/iconedit_icon_large.blit",
         ["iconedit_icon_small.blit"] = fromRepository "icons/iconedit_icon_small.blit",
-        ["unknown_icon_large.blit"] = fromRepository "icons/unknown_icon_large.blit",
-        ["unknown_icon_small.blit"] = fromRepository "icons/unknown_icon_small.blit",
-        ["settings_icon_small.blit"] = fromRepository "icons/settings_icon_small.blit",
         ["settings_icon_large.blit"] = fromRepository "icons/settings_icon_large.blit",
-        ["taskmon_icon_small.blit"] = fromRepository "icons/taskmon_icon_small.blit",
-        ["taskmon_icon_large.blit"] = fromRepository "icons/taskmon_icon_large.blit",
+        ["settings_icon_small.blit"] = fromRepository "icons/settings_icon_small.blit",
         ["shell_icon_small.blit"] = fromRepository "icons/shell_icon_small.blit",
         ["shell_icon_large.blit"] = fromRepository "icons/shell_icon_large.blit",
-        ["browser_icon_large.blit"] = fromRepository "icons/browser_icon_large.blit",
-        ["browser_icon_small.blit"] = fromRepository "icons/browser_icon_small.blit"
-    },
-    remos = {
-        ["home.lua"] = fromRepository "remos/home.lua",
-        ["init.lua"] = fromRepository "remos/init.lua",
-        ["kernel.lua"] = fromRepository "remos/kernel.lua",
-        ["menu.lua"] = fromRepository "remos/menu.lua",
-        ["popup.lua"] = fromRepository "remos/popup.lua",
-        ["taskmon.lua"] = fromRepository "remos/taskmon.lua",
-        ["settings.lua"] = fromRepository "remos/settings.lua"
+        ["taskmon_icon_small.blit"] = fromRepository "icons/taskmon_icon_small.blit",
+        ["taskmon_icon_large.blit"] = fromRepository "icons/taskmon_icon_large.blit",
+        ["unknown_icon_large.blit"] = fromRepository "icons/unknown_icon_large.blit",
+        ["unknown_icon_small.blit"] = fromRepository "icons/unknown_icon_small.blit",
+        ["worm_icon_large.blit"] = fromRepository "icons/worm_icon_large.blit",
+        ["worm_icon_small.blit"] = fromRepository "icons/worm_icon_small.blit",
     },
     libs = {
         touchui = {
@@ -50,16 +49,18 @@ local files = {
         ["draw.lua"] = fromRepository "libs/draw.lua",
         ["bigfont.lua"] = fromURL "https://pastebin.com/raw/3LfWxRWh"
     },
-    config = {
-        ["home_apps.table"] = fromRepository "config/home_apps.table",
+    remos = {
+        ["home.lua"] = fromRepository "remos/home.lua",
+        ["init.lua"] = fromRepository "remos/init.lua",
+        ["kernel.lua"] = fromRepository "remos/kernel.lua",
+        ["menu.lua"] = fromRepository "remos/menu.lua",
+        ["popup.lua"] = fromRepository "remos/popup.lua",
+        ["taskmon.lua"] = fromRepository "remos/taskmon.lua",
+        ["settings.lua"] = fromRepository "remos/settings.lua",
+        ["notificationTray.lua"] = fromRepository "remos/notificationTray.lua",
     },
     themes = {
         ["advanced.theme"] = fromRepository "themes/advanced.theme"
-    },
-    apps = {
-        ["eod.lua"] = fromRepository "apps/eod.lua",
-        ["browser.lua"] = fromRepository "apps/browser.lua",
-        ["iconedit.lua"] = fromRepository "apps/iconedit.lua",
     },
     ["startup.lua"] = fromRepository "startup.lua"
 }
