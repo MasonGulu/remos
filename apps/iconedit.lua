@@ -14,14 +14,18 @@ end
 
 ---Apply transparency to a clone of the given blit table
 ---@param blit BLIT
----@param color color
+---@param fg color
+---@param bg color
 ---@return BLIT
-local function resolveTransparency(blit, color)
-    local bgchar = colors.toBlit(color)
+local function resolveTransparency(blit, bg, fg)
+    local bgchar = colors.toBlit(bg)
+    local fgchar = colors.toBlit(fg)
     blit = remos.deepClone(blit)
     for _, v in ipairs(blit) do
         v[2] = string.gsub(v[2], " ", bgchar)
         v[3] = string.gsub(v[3], " ", bgchar)
+        v[2] = string.gsub(v[2], "_", fgchar)
+        v[3] = string.gsub(v[3], "_", fgchar)
     end
     return blit
 end
@@ -51,7 +55,14 @@ local themeFg, themeBg = colors.white, colors.black
 ---@return number
 ---@return number
 local function applyTransparency(fg, bg)
-    return fg == -1 and themeBg or fg, bg == -1 and themeBg or bg
+    local bgc, fgc = fg, bg
+    if bgc < 0 then
+        bgc = bgc == -1 and themeBg or themeFg
+    end
+    if fgc < 0 then
+        fgc = fgc == -1 and themeBg or themeFg
+    end
+    return bgc, fgc
 end
 
 ---@param x integer
@@ -94,13 +105,17 @@ local function drawColors(x, y, width)
     draw.set_col(colors.white, colors.black, win)
     draw.square(x, y, width + 2, math.ceil(17 / width) + 2, win)
     clickableColorPositions = {}
-    for i = 0, 16 do
+    for i = 0, 17 do
         local cx, cy = getCharacterPos(x, y, i, width)
         clickableColorPositions[cy] = clickableColorPositions[cy] or {}
         if i == 16 then
             draw.set_col(themeFg, themeBg, win)
-            draw.text(cx, cy, "T", win)
+            draw.text(cx, cy, "B", win)
             clickableColorPositions[cy][cx] = -1
+        elseif i == 17 then
+            draw.set_col(themeBg, themeFg, win)
+            draw.text(cx, cy, "F", win)
+            clickableColorPositions[cy][cx] = -2
         else
             draw.set_col(colors.white, 2 ^ i, win)
             draw.text(cx, cy, " ", win)
@@ -125,8 +140,8 @@ local charsx, charsy = imagew + 2, 1
 local image = loadIcon("icons/default_icon_small.blit") --[[@as BLIT]]
 
 local function setChar(x, y)
-    local bg = selectedBg == -1 and " " or colors.toBlit(selectedBg)
-    local fg = selectedFg == -1 and " " or colors.toBlit(selectedFg)
+    local bg = selectedBg == -1 and " " or selectedBg == -2 and "_" or colors.toBlit(selectedBg)
+    local fg = selectedFg == -1 and " " or selectedFg == -2 and "_" or colors.toBlit(selectedFg)
     image[y][1] = image[y][1]:sub(1, x - 1) .. selectedCharacter .. image[y][1]:sub(x + 1, -1)
     image[y][2] = image[y][2]:sub(1, x - 1) .. fg .. image[y][2]:sub(x + 1, -1)
     image[y][3] = image[y][3]:sub(1, x - 1) .. bg .. image[y][3]:sub(x + 1, -1)
@@ -148,7 +163,7 @@ while true do
     draw.set_col(colors.white, colors.black, win)
     win.clear()
     draw.square(1, 1, imagew + 2, imageh + 2, win)
-    draw.draw_blit(2, 2, resolveTransparency(image, themeBg), win)
+    draw.draw_blit(2, 2, resolveTransparency(image, themeBg, themeFg), win)
     drawCharacters(charsx, charsy, termW - imagew - 3)
     drawColors(1, imageh + 3, imagew - 1)
     draw.text(1, termH, "[S]ave [O]pen [T]heme [N]ew", win)
@@ -177,7 +192,7 @@ while true do
             themeFg, themeBg = themeBg, themeFg
         elseif ch == "o" then
             local popups = require "touchui.popups"
-            local f = popups.filePopup("Open file", "", false, false, false, "blit")
+            local f = popups.filePopup("Open file", "icons", false, false, false, "blit")
             if f then
                 local icon = loadIcon(f)
                 if icon then
@@ -189,7 +204,7 @@ while true do
             end
         elseif ch == "s" then
             local popups = require "touchui.popups"
-            local f = popups.filePopup("Save file", "", false, true, false, "blit")
+            local f = popups.filePopup("Save file", "icons", false, true, false, "blit")
             if f then
                 remos.saveTable(f, image)
             end

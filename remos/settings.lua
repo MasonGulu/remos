@@ -56,6 +56,13 @@ local function fileSetting(label, allowDirs, extension, name, path)
 end
 
 
+label("Theming", "c", 1)
+toggleSetting("Dark Mode", "remos.dark_mode")
+toggleSetting("Invert Bar Colors", "remos.invert_bar_colors")
+fileSetting("Custom Theme", false, "theme", "remos.custom_theme_file", "themes").selected = settings.get(
+    "remos.custom_theme_file")
+
+
 label("Home", "c", 1)
 toggleSetting("Large Home Icons", "remos.home.large_icons")
 settingVbox:addWidget(input.buttonWidget("Add Shortcut", function(self)
@@ -69,15 +76,13 @@ end)
 rootVbox:addWidget(saveButton, 3)
 
 
-label("Theming", "c", 1)
-toggleSetting("Dark Mode", "remos.dark_mode")
-toggleSetting("Invert Bar Colors", "remos.invert_bar_colors")
-fileSetting("Custom Theme", false, "theme", "remos.custom_theme_file", "themes").selected = settings.get(
-    "remos.custom_theme_file")
-
-
-label("UI", "c", 1)
+label("Menu", "c", 1)
 toggleSetting("Inverse Buttons", "remos.invert_buttons")
+toggleSetting("Close All Button*", "remos.menu.close_all_button")
+inputSetting("Menu Height*", "remos.menu.item_height", true)
+
+
+label("Time", "c", 1)
 toggleSetting("Display in-game time", "remos.top_bar.use_ingame")
 local timeFormatOptions = { "%I:%M %p", "%R", "%r", "%T" }
 local timeFormatWidget = input.selectionWidget("Time Format", timeFormatOptions,
@@ -89,8 +94,6 @@ local timeFormatWidget = input.selectionWidget("Time Format", timeFormatOptions,
     end, settingUpdateOnEvent("remos.top_bar.time_format"))
 settingVbox:addWidget(timeFormatWidget, 2)
 inputSetting("UTC Timezone", "remos.timezone", true)
-toggleSetting("Close All Button*", "remos.menu.close_all_button")
-inputSetting("Menu Height*", "remos.menu.item_height", true)
 
 
 label("Advanced", "c", 1)

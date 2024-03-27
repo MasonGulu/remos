@@ -15,47 +15,31 @@ local homeWin = window.create(term.current(), 1, 1, term.getSize())
 ---@field label string
 ---@field path string
 
----Load an icon
----@param fn any
----@return BLIT?
----@return string?
-local function loadIcon(fn)
-    local icon, reason = remos.loadTable(fn)
-    local bgchar = colors.toBlit(tui.theme.bg)
-    if icon --[[@as BLIT]] then
-        for _, v in ipairs(icon) do
-            v[2] = string.gsub(v[2], " ", bgchar)
-            v[3] = string.gsub(v[3], " ", bgchar)
-        end
-    end
-    return icon --[[@as BLIT]]
-end
-
 local function saveShortcuts(shortcuts)
     for i, v in ipairs(shortcuts) do
         v.iconSmall = nil
         v.iconLarge = nil
     end
-    assert(remos.saveTable("config/home_apps.table", shortcuts))
+    assert(remos.saveTable("config/home_apps.table", shortcuts, false))
 end
 
 
-local defaultIconLarge = assert(loadIcon("icons/default_icon_large.blit"))
-local defaultIconSmall = assert(loadIcon("icons/default_icon_small.blit"))
+local defaultIconLarge = assert(remos.loadTransparentBlit("icons/default_icon_large.blit"))
+local defaultIconSmall = assert(remos.loadTransparentBlit("icons/default_icon_small.blit"))
 
-local unknownIconLarge = assert(loadIcon("icons/unknown_icon_large.blit"))
-local unknownIconSmall = assert(loadIcon("icons/unknown_icon_small.blit"))
+local unknownIconLarge = assert(remos.loadTransparentBlit("icons/unknown_icon_large.blit"))
+local unknownIconSmall = assert(remos.loadTransparentBlit("icons/unknown_icon_small.blit"))
 
 local function loadShortcuts()
     local shortcuts = assert(remos.loadTable("config/home_apps.table"))
     for i, v in ipairs(shortcuts) do
         if v.iconSmallFile then
-            v.iconSmall = loadIcon(v.iconSmallFile)
+            v.iconSmall = remos.loadTransparentBlit(v.iconSmallFile)
             v.iconLarge = v.iconSmall
             v.iconSmall = v.iconSmall or unknownIconSmall
         end
         if v.iconLargeFile then
-            v.iconLarge = loadIcon(v.iconLargeFile) or v.iconLarge or unknownIconLarge
+            v.iconLarge = remos.loadTransparentBlit(v.iconLargeFile) or v.iconLarge or unknownIconLarge
         end
     end
     return shortcuts
@@ -161,8 +145,8 @@ tui.run(gridList, nil, function(event)
         gridList:updateGridSize(homeSize, homeSize)
         shortcuts = loadShortcuts()
         gridList:setTable(shortcuts)
-        defaultIconLarge = assert(loadIcon("icons/default_icon_large.blit"))
-        defaultIconSmall = assert(loadIcon("icons/default_icon_small.blit"))
+        defaultIconLarge = assert(remos.loadTransparentBlit("icons/default_icon_large.blit"))
+        defaultIconSmall = assert(remos.loadTransparentBlit("icons/default_icon_small.blit"))
     elseif event == "add_home_shortcut" then
         shortcutMenu(#shortcuts + 1)
     end

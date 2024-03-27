@@ -599,12 +599,16 @@ _G.remos = {
     ---Write a table to a file
     ---@param fn string
     ---@param t table
+    ---@param compact boolean? Default true
     ---@return boolean?
     ---@return string?
-    saveTable = function(fn, t)
+    saveTable = function(fn, t, compact)
         expect(1, fn, "string")
         expect(2, t, "table")
-        local st = textutils.serialise(t)
+        if compact == nil then
+            compact = true
+        end
+        local st = textutils.serialise(t, { compact = compact })
         local f, err = fs.open(fn, "wb")
         if not f then
             return nil, err
@@ -635,6 +639,26 @@ _G.remos = {
         local tz = settings.get("remos.timezone")
         time = time or os.epoch("utc")
         return time + (tz * 60 * 60 * 1000)
+    end,
+    ---Load an icon
+    ---@param fn string
+    ---@param fg color?
+    ---@param bg color?
+    ---@return BLIT?
+    ---@return string?
+    loadTransparentBlit = function(fn, fg, bg)
+        local icon, reason = remos.loadTable(fn)
+        local bgchar = colors.toBlit(remos.theme.bg or bg)
+        local fgchar = colors.toBlit(remos.theme.fg or fg)
+        if icon --[[@as BLIT]] then
+            for _, v in ipairs(icon) do
+                v[2] = string.gsub(v[2], " ", bgchar)
+                v[3] = string.gsub(v[3], " ", bgchar)
+                v[2] = string.gsub(v[2], "_", fgchar)
+                v[3] = string.gsub(v[3], "_", fgchar)
+            end
+        end
+        return icon --[[@as BLIT]]
     end
 }
 
