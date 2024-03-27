@@ -40,6 +40,9 @@ local focusedpid
 local runningpid = 0
 
 local menupid, homepid
+local bottombarpid, topbarpid
+
+local isRunning = true
 
 settings.define("remos.autoCleanupOnFocusLoss", {
     description = "Whether dead apps should be cleaned up whenever focus is lost.",
@@ -68,6 +71,28 @@ local function logError(s, ...)
     local f = assert(fs.open("errors.txt", "a"))
     f.writeLine(s:format(...))
     f.close()
+end
+
+---@param mesg string
+local function panic(mesg)
+    isRunning = false
+    draw.set_col(colors.red, colors.white, term)
+    term.clear()
+    term.setCursorPos(1, 1)
+    print("REMOS Kernel Panic")
+    logError("Kernel Panic - %s", mesg)
+    print(mesg)
+    draw.set_col(colors.black, nil, term)
+    print("[Enter] Enter CraftOS Shell")
+    print("[Space] Reboot")
+    while true do
+        local _, k = os.pullEvent("key")
+        if k == keys.space then
+            os.reboot()
+        elseif k == keys.enter then
+            return
+        end
+    end
 end
 
 ---Create a new process
@@ -221,7 +246,6 @@ local function terminateProcessChildren(pid)
     end
 end
 
-local bottombarpid, topbarpid
 ---@param process Process
 local function updateProcessWindow(process)
     if process.window then
@@ -284,6 +308,12 @@ end
 
 local kernelStartTime = epoch()
 
+---Check if a process is critical
+---@param pid integer
+local function isCriticalProcess(pid)
+    return pid == topbarpid or pid == bottombarpid or pid == menupid or pid == homepid
+end
+
 local popup, setFocused, cleanupProcess
 ---Resume a given process with given arguments, doesn't check filter
 ---@param process Process
@@ -314,7 +344,11 @@ local function resumeProcess(process, ...)
         if oldWin then
             term.redirect(oldWin)
         end
-        term.setCursorPos(1, 1)
+        if isCriticalProcess(process.pid) then
+            -- System critical process errored
+            panic("A critical system proccess has errored.\n" .. t)
+            return
+        end
         process.terminateOnFocusLoss = autoCleanupOnFocusLoss
         popup(("%s errored!"):format(process.title), t)
     end
@@ -433,6 +467,9 @@ local function tickProcess(e, process)
     if shouldRecieveEvent(e, process) then
         local err = resumeProcess(process, offsetMouse(process, e))
         process.filter = err
+        if not isRunning then
+            return
+        end
     end
     if process.pid == menupid and #apps == 0 then
         setFocused(homepid) -- if there are no apps open, redirect to home
@@ -440,7 +477,8 @@ local function tickProcess(e, process)
 end
 
 local function runProcesses()
-    while true do
+    isRunning = true
+    while isRunning do
         updateProcessStats(processes[0], kernelStartTime)
         local e = table.pack(os.pullEventRaw())
         kernelStartTime = epoch()
@@ -456,10 +494,11 @@ local function runProcesses()
             end
             for pid, process in pairs(processes) do
                 tickProcess(e, process)
+                if not isRunning then return end
             end
             term.setCursorPos(focusedx, focusedy + 1)
             term.setCursorBlink(cursorBlink)
-            draw.set_col(focusedfg, focusedbg, term --[[@as Window]])
+            draw.set_col(focusedfg, focusedbg, term)
         end
     end
 end
@@ -663,6 +702,9 @@ _G.remos = {
 }
 
 --- multishell injection
+--- TODO fix this, it does not work
+
+--[[
 multishell.getCount = function()
     return #apps
 end
@@ -692,6 +734,7 @@ end
 multishell.setTitle = function(pid, title)
     setProcessTitle(pid, title)
 end
+]]
 
 ---- Internal API
 ---@class RemosInternalAPI
@@ -776,4 +819,4 @@ processes[initpid].file = "/remos/init.lua"
 
 os.queueEvent("remos_boot")
 runProcesses()
-error("Kernel Exited!")
+print("REMOS has exited.")

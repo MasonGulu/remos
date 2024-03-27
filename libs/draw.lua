@@ -1,4 +1,4 @@
-local win = term --[[@as Window]]
+local win = term --[[@as Window|term]]
 
 ---@param v0 number
 ---@param v1 number
@@ -38,7 +38,7 @@ end
 ---@param x integer
 ---@param y integer
 ---@param t string
----@param dev Window
+---@param dev Window|term
 local function text(x, y, t, dev)
     dev = dev or win
     dev.setCursorPos(x, y)
@@ -47,14 +47,14 @@ end
 
 ---@param y integer
 ---@param t string
----@param dev Window
+---@param dev Window|term
 local function center_text(y, t, dev)
     dev = dev or win
     local w = dev.getSize()
     text(math.floor((w - #t) / 2), y, t, dev)
 end
 
----@param dev Window
+---@param dev Window|term
 ---@return integer
 ---@return integer
 local function get_pos(dev)
@@ -62,7 +62,7 @@ local function get_pos(dev)
     return dev.getCursorPos()
 end
 
----@param dev Window
+---@param dev Window|term
 ---@return color fg
 ---@return color bg
 local function get_col(dev)
@@ -72,7 +72,7 @@ end
 
 ---@param fg color?
 ---@param bg color?
----@param dev Window
+---@param dev Window|term
 local function set_col(fg, bg, dev)
     dev = dev or win
     if fg then
@@ -89,7 +89,7 @@ end
 ---@param y1 integer
 ---@param x2 integer
 ---@param y2 integer
----@param device Window
+---@param device Window|term
 ---@param ch string?
 local function line(x1, y1, x2, y2, device, ch)
     device = device or win
@@ -136,7 +136,7 @@ end
 ---@param y1 integer
 ---@param x2 integer
 ---@param y2 integer
----@param device Window
+---@param device Window|term
 ---@param ch string?
 local function smooth_step_line(x1, y1, x2, y2, device, ch)
     device = device or win
@@ -163,7 +163,7 @@ end
 ---@param y2 integer
 ---@param x3 integer
 ---@param y3 integer
----@param device Window
+---@param device Window|term
 ---@param ch string?
 local function quad_line(x1, y1, x2, y2, x3, y3, device, ch)
     device = device or win
@@ -193,7 +193,7 @@ end
 ---@param y3 integer
 ---@param x4 integer
 ---@param y4 integer
----@param device Window
+---@param device Window|term
 ---@param ch string?
 local function cubic_line(x1, y1, x2, y2, x3, y3, x4, y4, device, ch)
     device = device or win
@@ -221,7 +221,7 @@ end
 ---@param y1 integer input
 ---@param x4 integer output
 ---@param y4 integer output
----@param device Window
+---@param device Window|term
 ---@param ch string?
 local function aligned_cubic_line(x1, y1, x4, y4, device, ch)
     local x2, x3, y2, y3
@@ -237,7 +237,7 @@ local function aligned_cubic_line(x1, y1, x4, y4, device, ch)
     cubic_line(x1, y1, x2, y2, x3, y3, x4, y4, device, ch)
 end
 
----@param device Window
+---@param device Window|term
 local function invert(device)
     local fg, bg = get_col(device)
     set_col(bg, fg, device)
@@ -248,7 +248,7 @@ end
 ---@param y integer
 ---@param w integer
 ---@param h integer
----@param dev Window
+---@param dev Window|term
 local function square(x, y, w, h, dev)
     local topl = string.char(0x97) -- normal
     local topr = string.char(0x94)
@@ -279,7 +279,7 @@ end
 ---@param x integer
 ---@param y integer
 ---@param img BLIT
----@param dev Window
+---@param dev Window|term
 local function draw_blit(x, y, img, dev)
     for i = 1, #img do
         dev.setCursorPos(x, y + i - 1)
@@ -288,7 +288,7 @@ local function draw_blit(x, y, img, dev)
 end
 
 ---@param y integer
----@param dev Window
+---@param dev Window|term
 local function clear_line(y, dev)
     dev.setCursorPos(1, y)
     dev.clearLine()
@@ -300,7 +300,7 @@ return {
     cubic_line = cubic_line,
     quad_line = quad_line,
     smooth_step_line = smooth_step_line,
-    ---@param new_win Window
+    ---@param new_win Window|term
     set_default = function(new_win)
         win = new_win
     end,
