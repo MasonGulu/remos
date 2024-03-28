@@ -147,6 +147,12 @@ local function reloadSettings()
         customTheme = remos.loadTable(customThemeFile)
     end
     if customTheme then
+        for k, v in pairs(customTheme) do
+            -- perform lookup
+            if type(v) == "string" then
+                customTheme[k] = colors[v]
+            end
+        end
         tui.theme.bg = customTheme.bg or tui.theme.bg
         tui.theme.fg = customTheme.fg or tui.theme.fg
         tui.theme.highlight = customTheme.highlight or tui.theme.highlight

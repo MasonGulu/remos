@@ -91,6 +91,11 @@ settings.define("remos.timezone", {
     default = 0
 })
 
+settings.define("remos.custom_palette_file", {
+    description = "Custom palette to apply system-wide",
+    type = "string"
+})
+
 ---Whether all apps should be automatically closed
 local autoCloseDeadApps = settings.get("remos.autoCloseDeadApps")
 settings.save()
@@ -937,6 +942,19 @@ processes[0] = {
     x = 1,
     y = 1
 }
+
+--- load palette
+local themeFile = settings.get("remos.custom_palette_file")
+if themeFile then
+    local t = remos.loadTable(themeFile)
+    if t then
+        for k, v in pairs(t) do
+            term.setPaletteColor(colors[k], v)
+            applicationWin.setPaletteColor(colors[k], v)
+        end
+    end
+end
+
 initpid = addProcess(assert(loadfile("remos/init.lua", "t", _ENV)), "INIT", 0)
 processes[initpid].file = "/remos/init.lua"
 

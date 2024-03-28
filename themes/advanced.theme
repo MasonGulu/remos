@@ -1,4 +1,4 @@
 {
-    barbg=16,
-    barfg=32768
+    barbg="yellow",
+    barfg="black"
 }

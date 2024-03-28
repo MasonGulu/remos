@@ -61,6 +61,8 @@ toggleSetting("Dark Mode", "remos.dark_mode")
 toggleSetting("Invert Bar Colors", "remos.invert_bar_colors")
 fileSetting("Custom Theme", false, "theme", "remos.custom_theme_file", "themes").selected = settings.get(
     "remos.custom_theme_file")
+fileSetting("Custom Palette*", false, "pal", "remos.custom_palette_file", "themes/palettes").selected = settings.get(
+    "remos.custom_palette_file")
 
 
 label("Home", "c", 1)

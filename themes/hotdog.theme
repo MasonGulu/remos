@@ -1,0 +1,9 @@
+{
+    bg = "yellow",
+    fg = "black",
+    inputbg = "black",
+    inputfg = "white",
+    barbg = "red",
+    barfg = "black",
+    highlight = "gray"
+}

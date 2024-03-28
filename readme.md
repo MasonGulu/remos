@@ -29,7 +29,7 @@ There are a few specific events that you can use in your programs.
 * `remos_volume_change`, `number` - When the volume slider is changed. This value is also available at `_G.remos.volume`.
 
 ## Custom Themes
-You can create custom themes by creating a lua table file in the `themes` directory. It must have the `.theme` extension. The customizable fields are as follows.
+You can create custom themes by creating a lua table file in the `themes` directory. It must have the `.theme` extension. The customizable fields are as follows. You can either use numbers for colors, or color names.
 * `fg`
 * `bg`
 * `barfg`
@@ -39,6 +39,9 @@ You can create custom themes by creating a lua table file in the `themes` direct
 * `inputbg`
 * `inputfg`
 * `highlight`
+
+## Custom Palettes
+You can create custom palettes by creating a lua table file in the `themes/palettes` directory. It must have the `.pal` extension. This table should map from color names -> color codes.
 
 ## Incompatibilities
 * `shell.getRunningProgram()` will return `remos/kernel.lua` unless it is ran through `shell`.
