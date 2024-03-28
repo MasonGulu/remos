@@ -231,7 +231,7 @@ end
 
 function gridListWidget__index:getLayout(i)
     local itemsPerPage = self.pagew * self.pageh
-    local itemWidth = math.floor(self.w / self.pagew)
+    local itemWidth = math.floor((self.w - 1) / self.pagew)
     local itemHeight = math.floor((self.h - 1) / self.pageh)
 
     -- 0 INDEXED
@@ -246,7 +246,7 @@ function gridListWidget__index:getLayout(i)
 
     local pageX = (itemPage - self.page + 1) * itemWidth * self.w
 
-    local itemX = (itemColumn * itemWidth) - pageX + 1
+    local itemX = (itemColumn * itemWidth) - pageX + 2 -- add a space to the left for padding
     local itemY = (itemRow * itemHeight) + 1
 
     if self.dragging then
