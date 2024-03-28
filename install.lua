@@ -68,74 +68,264 @@ local files = {
     },
     ["startup.lua"] = fromRepository "startup.lua"
 }
-local function downloadFile(path, url)
-    local response = assert(http.get(url, nil, true), "Failed to get " .. url)
-    local writeFile = true
-    if writeFile then
-        local f = assert(fs.open(path, "wb"), "Cannot open file " .. path)
-        f.write(response.readAll())
-        f.close()
-    end
-    response.close()
+
+local w,h = term.getSize()
+local margin = 2
+
+term.setBackgroundColor(colors.white)
+term.setTextColor(colors.lightGray)
+term.clear()
+
+term.setCursorPos(math.floor(w/2-#("Please wait")/2), math.ceil(h/2))
+term.write("Please wait")
+
+local strings = require("cc.strings")
+local bigfont = load(
+    http.get("https://pastebin.com/raw/3LfWxRWh").readAll(),
+    "bigfont",
+    "bt",
+    _ENV
+)()
+
+term.setTextColor(colors.black)
+term.clear()
+
+local function title()
+    bigfont.writeOn(term, 1, "Remos", math.floor(w/2-#("Remos"))-1, 2)
 end
 
-local function printBar(percentage)
+title()
+
+local introduction = strings.wrap(
+    "Welcome to Remos, an Android inspired shell for ComputerCraft.\n\nIn order to continue the installation, click on \"Continue\".\n\nHold CTRL+T to cancel.",
+    w-(margin*2)
+)
+
+for i, line in ipairs(introduction) do
+    term.setCursorPos(margin, 5+i)
+    term.write(line)
+end
+
+local function button(label)
+    term.setCursorPos(1, h-2)
+    term.write(string.char(0x97))
+    term.write(string.char(0x83):rep(w-2))
+    term.setBackgroundColor(colors.black)
+    term.setTextColor(colors.white)
+    term.write(string.char(0x94))
+
+    term.setBackgroundColor(colors.white)
+    term.setTextColor(colors.black)
+    term.setCursorPos(1, h-1)
     term.clearLine()
-    local w = term.getSize()
-    local filledw = math.ceil(percentage * (w - 2))
-    local bar = "[" .. ("*"):rep(filledw) .. (" "):rep(w - filledw - 2) .. "]"
-    print(bar)
+    term.write(string.char(0x95))
+    term.setBackgroundColor(colors.black)
+    term.setTextColor(colors.white)
+    term.setCursorPos(w, h-1)
+    term.write(string.char(0x95))
+
+    term.setCursorPos(1, h)
+    term.write(string.char(0x8a))
+    term.write(string.char(0x8f):rep(w-2))
+    term.setBackgroundColor(colors.black)
+    term.setTextColor(colors.white)
+    term.write(string.char(0x85))
+
+    term.setBackgroundColor(colors.white)
+    term.setTextColor(colors.black)
+    term.setCursorPos(math.ceil(w/2-#label/2), h-1)
+    term.write(label)
 end
 
-local function count(t)
-    local i = 0
-    for _, _ in pairs(t) do
-        i = i + 1
-    end
-    return i
-end
+button("Continue")
 
-local function printProgress(y, path, percent)
-    term.setCursorPos(1, y)
-    printBar(percent)
-    term.clearLine()
-    print(path)
-end
-
-local function downloadFiles(folder, files)
-    local total = count(files)
-    local filen = 0
-    local _, y = term.getCursorPos()
-    for k, v in pairs(files) do
-        filen = filen + 1
-        local path = fs.combine(folder, k)
-        printProgress(y, path, filen / total)
-        if v.url then
-            downloadFile(path, v.url)
-        else
-            fs.makeDir(path)
-            downloadFiles(path, v)
+while true do
+    local event, button, _, y = os.pullEventRaw()
+    if event == "mouse_click" then
+        if y >= h-2 and button == 1 then
+            break
         end
+    elseif event == "terminate" then
+        term.setBackgroundColor(colors.black)
+        term.setTextColor(colors.white)
+        term.clear()
+        term.setCursorPos(1,1)
+        return
     end
-    term.setCursorPos(1, y)
-    term.clearLine()
-    term.setCursorPos(1, y + 1)
-    term.clearLine()
 end
+
+term.setBackgroundColor(colors.white)
+term.setTextColor(colors.lightGray)
 
 term.clear()
-term.setCursorPos(1, 1)
-print("This will install Remos on this device, overwriting files if necessary.")
-print("Do you want to continue (Y/n)? ")
-local input = read()
-if input:sub(1, 1):lower() == "n" then
-    print("Cancelled installation.")
-    return
+
+local info = strings.wrap(
+    "Don't turn off the device, this might take a while",
+    w-(margin*2)
+)
+
+for i, line in ipairs(info) do
+    term.setCursorPos(math.floor(w/2-#line/2)+margin-1, h-#info+i-1)
+    term.write(line)
 end
-print("Installing Remos...")
 
-downloadFiles("/", files)
+term.setTextColor(colors.black)
 
-print("Remos installed, rebooting...")
-sleep(1)
+title()
+
+local function part(progress)
+    return strings.wrap(
+        ("Now installing\n%d%% complete"):format(progress),
+        w-(margin*2)
+    )
+end
+
+local animation = "\133\131\138\151\143\148"
+local inverse = "\151\143"
+
+local cur, total = 0,100
+local successfull, reason = false, "Unknown exception"
+parallel.waitForAny(
+    function()
+        local step = 1
+        while true do
+            local state = animation:sub(step, step)
+
+            if inverse:find(state) then
+                term.setBackgroundColor(colors.black)
+                term.setTextColor(colors.white)
+            else
+                term.setBackgroundColor(colors.white)
+                term.setTextColor(colors.black)
+            end
+
+            bigfont.writeOn(term, 1, state, math.floor(w/2), math.floor(h/2)-2)
+            
+            term.setBackgroundColor(colors.white)
+            term.setTextColor(colors.black)
+        
+            step = step +1
+            if step > #animation then
+                step = 1
+            end
+
+            local text = part(math.floor(100/total*cur))
+            for i, line in ipairs(text) do
+                term.setCursorPos(math.floor(w/2-#line/2)+margin-1, math.floor(h/2)+i+1)
+                term.write(line)
+            end
+
+            sleep(0.1)
+        end
+    end,
+    function()
+        local function deepCount(t)
+            local i = 0
+            for _, m in pairs(t) do
+                if type(m) == "table" then
+                    i = i + deepCount(m)
+                else
+                    i = i + 1
+                end
+            end
+            return i
+        end
+
+        total = deepCount(files)
+
+        local function downloadFile(path, url)
+            local response, err = http.get(url, nil, true)
+            if not response then
+                reason = ("Failed to get '%s'.\n%s"):format(url, err)
+                return
+            end
+
+            local writeFile = true
+            if writeFile then
+                local f, err = fs.open(path, "wb")
+                if not f then
+                    reason = ("Cannot open file '%s'.\n%s"):format(path, err)
+                    return
+                end
+
+                f.write(response.readAll())
+                f.close()
+            end
+            response.close()
+        end
+
+        local function count(t)
+            local i = 0
+            for _, _ in pairs(t) do
+                i = i + 1
+            end
+            return i
+        end
+
+        local function downloadFiles(folder, files)
+            local total = count(files)
+            local filen = 0
+            local _, y = term.getCursorPos()
+            for k, v in pairs(files) do
+                filen = filen + 1
+                local path = fs.combine(folder, k)
+
+                if v.url then
+                    downloadFile(path, v.url)
+                    cur = cur + 1
+                else
+                    fs.makeDir(path)
+                    downloadFiles(path, v)
+                end
+            end
+            term.setCursorPos(1, y)
+            term.clearLine()
+            term.setCursorPos(1, y + 1)
+            term.clearLine()
+        end
+
+        downloadFiles("/", files)
+        successfull = true
+    end
+)
+
+term.clear()
+
+title()
+
+local final = ""
+if successfull then
+    final = strings.wrap(
+        "Installation complete! \2\n\nHold CTRL+T if wishing to make manual changes before applying the changes.",
+        w-(margin*2)
+    )
+else
+    final = strings.wrap(
+        ":(\nA fatal error has occurred. The installation has been cancelled.\n\nReason:\n\t"..reason,
+        w-(margin*2)
+    )
+end
+
+for i, line in ipairs(final) do
+    term.setCursorPos(margin, 5+i)
+    term.write(line)
+end
+
+button("Restart")
+
+while true do
+    local event, button, _, y = os.pullEventRaw()
+    if event == "mouse_click" then
+        if y >= h-2 and button == 1 then
+            break
+        end
+    elseif event == "terminate" then
+        term.setBackgroundColor(colors.black)
+        term.setTextColor(colors.white)
+        term.clear()
+        term.setCursorPos(1,1)
+        return
+    end
+end
+
 os.reboot()
