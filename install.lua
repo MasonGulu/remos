@@ -60,7 +60,11 @@ local files = {
         ["notificationTray.lua"] = fromRepository "remos/notificationTray.lua",
     },
     themes = {
-        ["advanced.theme"] = fromRepository "themes/advanced.theme"
+        palettes = {
+            ["gnome.pal"] = fromRepository "themes/palettes/gnome.pal",
+        },
+        ["advanced.theme"] = fromRepository "themes/advanced.theme",
+        ["hotdog.theme"] = fromRepository "themes/hotdog.theme"
     },
     ["startup.lua"] = fromRepository "startup.lua"
 }
