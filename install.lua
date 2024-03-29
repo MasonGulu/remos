@@ -69,6 +69,8 @@ local files = {
     ["startup.lua"] = fromRepository "startup.lua"
 }
 
+local writeFile = true -- For debugging purposes
+
 local w,h = term.getSize()
 local margin = 2
 
@@ -231,7 +233,7 @@ parallel.waitForAny(
             return i
         end
 
-        total = deepCount(files)
+        total = deepCount(files) * 1 -- One copy for downloading, the other for writing
 
         local function downloadFile(path, url)
             local response, err = http.get(url, nil, true)
@@ -240,18 +242,10 @@ parallel.waitForAny(
                 return
             end
 
-            local writeFile = true
-            if writeFile then
-                local f, err = fs.open(path, "wb")
-                if not f then
-                    reason = ("Cannot open file '%s'.\n%s"):format(path, err)
-                    return
-                end
-
-                f.write(response.readAll())
-                f.close()
-            end
+            local content = response.readAll()
             response.close()
+
+            return content
         end
 
         local function count(t)
@@ -262,29 +256,46 @@ parallel.waitForAny(
             return i
         end
 
-        local function downloadFiles(folder, files)
+        local function applyFile(path, content)
+            if writeFile then
+                local f, err = fs.open(path, "wb")
+                if not f then
+                    reason = ("Cannot open file '%s'.\n%s"):format(path, err)
+                    return
+                end
+
+                f.write(content)
+                f.close()
+            end
+        end
+
+        local function handleFiles(folder, files, handler)
             local total = count(files)
             local filen = 0
-            local _, y = term.getCursorPos()
             for k, v in pairs(files) do
                 filen = filen + 1
                 local path = fs.combine(folder, k)
 
-                if v.url then
-                    downloadFile(path, v.url)
+                if type(v) ~= "table" or v.url then
+                    handler(v, path, files, k)
                     cur = cur + 1
                 else
-                    fs.makeDir(path)
-                    downloadFiles(path, v)
+                    if writeFile then
+                        fs.makeDir(path)
+                    end
+                    handleFiles(path, v, handler)
                 end
             end
-            term.setCursorPos(1, y)
-            term.clearLine()
-            term.setCursorPos(1, y + 1)
-            term.clearLine()
         end
 
-        downloadFiles("/", files)
+        handleFiles("/", files, function(v, path, tab, k)
+            tab[k] = downloadFile(path, v.url)
+        end)
+
+        handleFiles("/", files, function(v, path, tab, k)
+            applyFile(path, v)
+        end)
+
         successfull = true
     end
 )
