@@ -713,6 +713,7 @@ _G.remos = {
             tui.theme.inputbg = colors.lightGray
             tui.theme.inputfg = colors.black
         end
+        tui.theme.barbg, tui.theme.barfg = tui.theme.bg, tui.theme.fg
         local customThemeFile = settings.get("remos.custom_theme_file")
         local customTheme
         if customThemeFile then
