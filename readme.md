@@ -9,6 +9,7 @@ If you find incompatibilites that are not listed below please report them. I can
 
 ## Usage Tips
 * Mouse drags determine their direction based on the first character moved to. If you want to swipe left/right, the first character you drag into MUST be left or right, afterwards it does not matter.
+* If you are on pocket PCs there will be a new icon in the top left. This represents which peripheral is currently attached to the pocket PC. Left click it to cycle, right click it to detach it. It will change colors when the peripheral is in use, and will not let you eject/change it until the process using it is no longer running.
 
 ## Remos Specific Features
 * Familiar Android-like interface
