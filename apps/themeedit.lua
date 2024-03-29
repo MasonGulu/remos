@@ -38,7 +38,7 @@ addColor("checked")
 addColor("unchecked")
 addColor("inputbg")
 addColor("inputfg")
-addColor("hightlight")
+addColor("highlight")
 
 local function loadTheme(t)
     wipTheme = t
