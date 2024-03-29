@@ -63,6 +63,7 @@ fileSetting("Custom Theme", false, "theme", "remos.custom_theme_file", "themes")
     "remos.custom_theme_file")
 fileSetting("Custom Palette*", false, "pal", "remos.custom_palette_file", "themes/palettes").selected = settings.get(
     "remos.custom_palette_file")
+inputSetting("Splash Delay", "remos.splash_screen_delay", true)
 
 
 label("Home", "c", 1)

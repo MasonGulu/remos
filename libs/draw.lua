@@ -39,19 +39,32 @@ end
 ---@param y integer
 ---@param t string
 ---@param dev Window|term
-local function text(x, y, t, dev)
+---@param size integer? >0 for bigfont
+local function text(x, y, t, dev, size)
     dev = dev or win
+    size = size or 0
     dev.setCursorPos(x, y)
-    dev.write(t)
+    if size > 0 then
+        local bigfont = require "bigfont"
+        bigfont.writeOn(dev, size, t, x, y)
+    else
+        dev.write(t)
+    end
 end
 
 ---@param y integer
 ---@param t string
 ---@param dev Window|term
-local function center_text(y, t, dev)
+---@param size integer? >0 for bigfont
+local function center_text(y, t, dev, size)
     dev = dev or win
+    size = size or 0
     local w = dev.getSize()
-    text(math.ceil((w - #t) / 2), y, t, dev)
+    local tsize = #t
+    if size > 0 then
+        tsize = tsize * 3 * size
+    end
+    text(math.ceil((w - tsize) / 2), y, t, dev, size)
 end
 
 ---@param dev Window|term

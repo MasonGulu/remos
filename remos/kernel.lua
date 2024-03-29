@@ -96,6 +96,24 @@ settings.define("remos.custom_palette_file", {
     type = "string"
 })
 
+settings.define("remos.splash_screen_delay", {
+    description = "How long to show the Remos splash screen for",
+    type = "number",
+    default = 0.5
+})
+
+settings.define("remos.dark_mode", {
+    description = "Dark mode",
+    type = "boolean",
+    default = false
+})
+
+settings.define("remos.invert_bar_colors", {
+    description = "Invert the colors of the top/bottom bars",
+    type = "boolean",
+    default = true
+})
+
 ---Whether all apps should be automatically closed
 local autoCloseDeadApps = settings.get("remos.autoCloseDeadApps")
 settings.save()
@@ -679,6 +697,49 @@ _G.remos = {
         peripheralStatus.paused = paused
         os.queueEvent("remos_peripheral")
     end,
+    loadTheme = function()
+        local tui = require "touchui"
+        local darkMode = settings.get("remos.dark_mode")
+        if darkMode then
+            tui.theme.bg = colors.black
+            tui.theme.fg = colors.white
+            tui.theme.highlight = colors.orange
+            tui.theme.inputbg = colors.gray
+            tui.theme.inputfg = colors.white
+        else
+            tui.theme.bg = colors.white
+            tui.theme.fg = colors.black
+            tui.theme.highlight = colors.blue
+            tui.theme.inputbg = colors.lightGray
+            tui.theme.inputfg = colors.black
+        end
+        local customThemeFile = settings.get("remos.custom_theme_file")
+        local customTheme
+        if customThemeFile then
+            customTheme = remos.loadTable(customThemeFile)
+        end
+        if customTheme then
+            for k, v in pairs(customTheme) do
+                -- perform lookup
+                if type(v) == "string" then
+                    customTheme[k] = colors[v]
+                end
+            end
+            tui.theme.bg = customTheme.bg or tui.theme.bg
+            tui.theme.fg = customTheme.fg or tui.theme.fg
+            tui.theme.highlight = customTheme.highlight or tui.theme.highlight
+            tui.theme.inputbg = customTheme.inputbg or tui.theme.inputbg
+            tui.theme.inputfg = customTheme.inputfg or tui.theme.inputfg
+        end
+        if customTheme then
+            tui.theme.barfg = customTheme.barfg or tui.theme.fg
+            tui.theme.barbg = customTheme.barbg or tui.theme.bg
+        end
+        if settings.get("remos.invert_bar_colors") then
+            tui.theme.barfg, tui.theme.barbg = tui.theme.barbg, tui.theme.barfg
+        end
+        _G.remos.theme = tui.theme
+    end,
 
     --- variables to get information about the current process
     pid = 0,
@@ -954,6 +1015,16 @@ if themeFile then
         end
     end
 end
+
+remos.loadTheme()
+local function splashScreen()
+    draw.set_col(remos.theme.fg, remos.theme.bg, term)
+    term.clear()
+    draw.center_text(3, "Welcome To", term)
+    draw.center_text(4, "Remos", term, 1)
+    sleep(settings.get("remos.splash_screen_delay"))
+end
+splashScreen()
 
 initpid = addProcess(assert(loadfile("remos/init.lua", "t", _ENV)), "INIT", 0)
 processes[initpid].file = "/remos/init.lua"
