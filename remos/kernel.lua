@@ -386,7 +386,7 @@ local function resumeProcess(process, ...)
     if not ok and e[1] ~= "terminate" then
         process.state = "errored"
         local t = debug.traceback(process.coro, err)
-        logError(t)
+        logError("%s", t)
         if oldWin then
             term.redirect(oldWin)
         end
