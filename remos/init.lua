@@ -68,7 +68,8 @@ settings.define("remos.top_bar.use_ingame", {
 
 local function timeText()
     local time = settings.get("remos.top_bar.use_ingame") and os.epoch("ingame") or remos.epoch()
-    return os.date(settings.get("remos.top_bar.time_format"), time / 1000) --[[@as string]]
+    local ok, s = pcall(os.date, settings.get("remos.top_bar.time_format"), time / 1000)
+    return ok and s or "INVALID" --[[@as string]]
 end
 
 local function periphText()
