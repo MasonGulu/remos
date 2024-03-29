@@ -25,6 +25,7 @@ If you would like to leverage the abilities of remos, look in the `_G.remos` glo
 ### Events
 There are a few specific events that you can use in your programs.
 * `remos_back_button` - When the back button is pressed.
+* `remos_play_pause_button` - When the media controls play/pause button is pressed. Use in conjunction with `_G.remos.setPlaying`.
 * `remos_skip_back_button` - When the media controls skip back button is pressed
 * `remos_skip_forward_button` - When the media controls skip forward button is pressed
 * `remos_volume_change`, `number` - When the volume slider is changed. This value is also available at `_G.remos.volume`.
