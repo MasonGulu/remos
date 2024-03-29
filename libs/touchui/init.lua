@@ -114,17 +114,13 @@ function textWidget__index:draw()
     for i, t in ipairs(self.wrapped) do
         local x
         if self.alignment == "c" then
-            x = math.floor((self.w - (#t * charw)) / 2)
+            x = math.ceil((self.w - (#t * charw)) / 2)
         elseif self.alignment == "l" then
             x = 1
         elseif self.alignment == "r" then
             x = self.w - (#t * charw) + 1
         end
-        if self.scale == 0 then
-            draw.text(x, i, t, self.window)
-        else
-            require("bigfont").writeOn(self.window, self.scale, t, x, i * self.scale)
-        end
+        draw.text(x, i, t, self.window, self.scale)
     end
     self.window.setVisible(true)
     self.window.setVisible(false)
