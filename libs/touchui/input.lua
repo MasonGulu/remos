@@ -332,7 +332,7 @@ end
 local fileWidget__index = setmetatable({}, tui.emptyWidget_meta)
 local fileWidget_meta = { __index = fileWidget__index }
 
-local browseString = "[Browse...]"
+local browseString = "[Browse]"
 function fileWidget__index:draw()
     self.window.setVisible(false)
     draw.set_col(self.theme.fg, self.theme.bg, self.window)
@@ -343,7 +343,7 @@ function fileWidget__index:draw()
     draw.text(self.w - #browseString, centerY, browseString, self.window)
 
     if self.selected then
-        draw.text(3, 2, self.selected, self.window)
+        draw.text(3, centerY + 1, self.selected, self.window)
     end
 
     self.window.setVisible(true)
@@ -359,6 +359,12 @@ function fileWidget__index:shortPress(button, x, y)
         end
         return true
     end
+end
+
+---Set what file this widget has selected
+---@param path string?
+function fileWidget__index:setSelected(path)
+    self.selected = path
 end
 
 ---Create a file selector widget
@@ -379,6 +385,72 @@ local function fileWidget(label, write, allowDirs, extension, onUpdate, path)
     self.extension = extension
     self.onUpdate = onUpdate
     self.path = path
+    return self
+end
+
+---@class ColorWidget : Widget
+local colorWidget__index = setmetatable({}, tui.emptyWidget_meta)
+local colorWidget_meta = { __index = colorWidget__index }
+
+local blitstr = "0123456789abcdef"
+function colorWidget__index:draw()
+    self.window.setVisible(false)
+    draw.set_col(self.theme.fg, self.theme.bg, self.window)
+    self.window.clear()
+    local centerY = math.floor(self.h / 2)
+
+    draw.text(2, centerY, self.label, self.window)
+    self.window.setCursorPos(2, centerY + 1)
+    self.window.blit((" "):rep(#blitstr), blitstr, blitstr)
+
+    if self.transparency then
+        draw.text(2 + 16, centerY + 1, "T", self.window)
+    end
+
+    draw.text(2 + self.selected, centerY + 2, "\30", self.window)
+
+    self.window.setVisible(true)
+end
+
+function colorWidget__index:shortPress(button, x, y)
+    local centerY = math.floor(self.h / 2)
+    local maxX = 2 + 15
+    if self.transparency then maxX = maxX + 1 end
+    if y == centerY + 1 and x >= 2 and x <= maxX then
+        self.selected = x - 2
+        if self.onUpdate then
+            local value = 2 ^ self.selected
+            if self.selected == 16 then
+                value = 0
+            end
+            self.onUpdate(value)
+        end
+        return true
+    end
+end
+
+---Set the selected color of this color picker
+---@param color color set to 0 for transparent
+function colorWidget__index:setColor(color)
+    if color == 0 then
+        self.selected = 16
+        return
+    end
+    self.selected = math.log(color, 2)
+end
+
+---Create a color picker widget
+---@param label string
+---@param transparency boolean? Allow user to select transparent as a color
+---@param onUpdate fun(value:number)? value = 0 for transparent
+---@return ColorWidget
+local function colorWidget(label, transparency, onUpdate)
+    ---@class ColorWidget
+    local self = setmetatable(tui.emptyWidget(), colorWidget_meta)
+    self.label = label
+    self.transparency = transparency
+    self.selected = 0
+    self.onUpdate = onUpdate
     return self
 end
 
@@ -437,5 +509,6 @@ return {
     sliderWidget = sliderWidget,
     inputWidget = inputWidget,
     fileWidget = fileWidget,
-    selectionWidget = selectionWidget
+    selectionWidget = selectionWidget,
+    colorWidget = colorWidget
 }

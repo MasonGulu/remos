@@ -52,6 +52,7 @@ local function fileSetting(label, allowDirs, extension, name, path)
         end
     end, path)
     settingVbox:addWidget(fileInput, 3)
+    fileInput:setSelected(settings.get(name))
     return fileInput
 end
 
@@ -59,10 +60,8 @@ end
 label("Theming", "c", 1)
 toggleSetting("Dark Mode", "remos.dark_mode")
 toggleSetting("Invert Bar Colors", "remos.invert_bar_colors")
-fileSetting("Custom Theme", false, "theme", "remos.custom_theme_file", "themes").selected = settings.get(
-    "remos.custom_theme_file")
-fileSetting("Custom Palette*", false, "pal", "remos.custom_palette_file", "themes/palettes").selected = settings.get(
-    "remos.custom_palette_file")
+fileSetting("Custom Theme", false, "theme", "remos.custom_theme_file", "themes")
+fileSetting("Custom Palette*", false, "pal", "remos.custom_palette_file", "themes/palettes")
 inputSetting("Splash Delay", "remos.splash_screen_delay", true)
 
 

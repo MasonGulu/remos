@@ -120,7 +120,7 @@ function textWidget__index:draw()
         elseif self.alignment == "r" then
             x = self.w - (#t * charw) + 1
         end
-        draw.text(x, i, t, self.window, self.scale)
+        draw.text(x, ((i - 1) * charw) + 1, t, self.window, self.scale)
     end
     self.window.setVisible(true)
     self.window.setVisible(false)
