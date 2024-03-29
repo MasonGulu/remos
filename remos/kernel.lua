@@ -1017,14 +1017,7 @@ if themeFile then
 end
 
 remos.loadTheme()
-local function splashScreen()
-    draw.set_col(remos.theme.fg, remos.theme.bg, term)
-    term.clear()
-    draw.center_text(3, "Welcome To", term)
-    draw.center_text(4, "Remos", term, 1)
-    sleep(settings.get("remos.splash_screen_delay"))
-end
-splashScreen()
+loadfile("remos/splash.lua", "t", _ENV)()
 
 initpid = addProcess(assert(loadfile("remos/init.lua", "t", _ENV)), "INIT", 0)
 processes[initpid].file = "/remos/init.lua"
