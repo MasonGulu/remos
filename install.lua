@@ -66,9 +66,12 @@ local files = {
     themes = {
         palettes = {
             ["gnome.pal"] = fromRepository "themes/palettes/gnome.pal",
+            ["solarized.pal"] = fromRepository "themes/palettes/solarized.pal",
         },
         ["advanced.theme"] = fromRepository "themes/advanced.theme",
-        ["hotdog.theme"] = fromRepository "themes/hotdog.theme"
+        ["hotdog.theme"] = fromRepository "themes/hotdog.theme",
+        ["solarized_dark.theme"] = fromRepository "themes/solarized_dark.theme",
+        ["solarized_light.theme"] = fromRepository "themes/solarized_light.theme",
     },
     ["startup.lua"] = fromRepository "startup.lua"
 }
