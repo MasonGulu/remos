@@ -6,7 +6,6 @@ local draw = require "draw"
 local modem = peripheral.find("modem")
 assert(modem, "Empires of Dirt requires a modem")
 local modemSide = peripheral.getName(modem)
-rednet.open(modemSide)
 
 local scrollX, scrollY = 0, 0
 
@@ -626,6 +625,7 @@ local isHost
 ---@param name string
 ---@param hostid integer
 local function joinGame(name, hostid)
+    rednet.open(modemSide)
     draw = require "draw"
     print("Attempting to join...")
     host = hostid
@@ -819,6 +819,7 @@ local function runGame()
 end
 
 local function hostGame(hname)
+    rednet.open(modemSide)
     isHost = true
     hostname = hname
     rednet.host(protocol, hostname)
@@ -1041,7 +1042,8 @@ local allowedArgs = {
     tick = { type = "value", description = "Tick delay in seconds" },
     notk = { type = "flag", description = "Don't kill players when they are captured" },
     gui = { type = "flag", description = "Launch the graphical menu using touchui" },
-    tui = { type = "flag", description = "Launch the CLI menu" }
+    tui = { type = "flag", description = "Launch the CLI menu" },
+    modem = { type = "value", description = "Modem peripheral side" }
 }
 
 local function printHelp()
@@ -1157,6 +1159,7 @@ local function handleArgs()
         dominationPercentage = tonumber(givenArgs.dom) or dominationPercentage
         tickdelay = tonumber(givenArgs.tick) or tickdelay
         territoryKill = not givenArgs.notk
+        modemSide = givenArgs.modem or modemSide
         if varArgs[3] then
             hostAndJoin(args[2], args[3])
         else
