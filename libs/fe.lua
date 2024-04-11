@@ -40,6 +40,7 @@ local eventLUT = {
     websocket_failure = { "url", "err" },
     websocket_message = { "url", "message", "binary" },
     websocket_success = { "url", "handle" },
+    timer = { "id" },
 
     -- KTWSL https://github.com/MasonGulu/msks/blob/main/ktwsl.lua
     krist_transaction = { "to", "from", "value", "transaction" },
@@ -47,15 +48,13 @@ local eventLUT = {
 }
 
 --- Function that takes an event table, and applies the LUT to it
-local function applyLUT(e, suppressErr)
+local function applyLUT(e)
     expect(1, e, "table")
     local LUT = eventLUT[e[1]]
     if LUT then
         for k, v in ipairs(LUT) do
             e[v] = e[k + 1]
         end
-    elseif not suppressErr then
-        error("Event " .. e[1] .. " not supported!")
     end
     e.event = e[1]
     return e
@@ -80,10 +79,8 @@ end
 ---@param filters string[]? table of desired events ie. {"mouse_click", "modem_message"}
 ---@param timeout number? time in seconds to return nil if no event matching the filter is recieved
 ---@param raw boolean? use pullEventRaw and catch "terminate" events
----@param suppressErr boolean? disable erroring upon recieving an unsupported event, just return the standard event table instead.
---
 ---@return table? event information
-local function pullEvent(filters, timeout, raw, suppressErr)
+local function pullEvent(filters, timeout, raw)
     assert(not (timeout and isIn("timer", filters or {})), "Cannot set timeout when 'timer' is a targetted event.")
     local timerID, e
     if timeout then
@@ -105,7 +102,7 @@ local function pullEvent(filters, timeout, raw, suppressErr)
     if timeout then
         os.cancelTimer(timerID)
     end
-    return applyLUT(e, suppressErr)
+    return applyLUT(e)
 end
 
 return {

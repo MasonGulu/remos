@@ -8,38 +8,29 @@ local homeWin = window.create(term.current(), 1, 1, term.getSize())
 
 
 ---@class Shortcut
----@field iconLarge BLIT?
----@field iconLargeFile string?
----@field iconSmall BLIT?
----@field iconSmallFile string?
+---@field icon BLIT?
+---@field iconFile string?
 ---@field label string
 ---@field path string
 
 local function saveShortcuts(shortcuts)
     for i, v in ipairs(shortcuts) do
-        v.iconSmall = nil
-        v.iconLarge = nil
+        v.icon = nil
     end
     assert(remos.saveTable("config/home_apps.table", shortcuts, false))
 end
 
 
-local defaultIconLarge = assert(remos.loadTransparentBlit("icons/default_icon_large.blit"))
-local defaultIconSmall = assert(remos.loadTransparentBlit("icons/default_icon_small.blit"))
+local defaultIcon = assert(remos.loadTransparentBlit("icons/default.icon"))
 
-local unknownIconLarge = assert(remos.loadTransparentBlit("icons/unknown_icon_large.blit"))
-local unknownIconSmall = assert(remos.loadTransparentBlit("icons/unknown_icon_small.blit"))
+local unknownIcon = assert(remos.loadTransparentBlit("icons/missing.icon"))
 
 local function loadShortcuts()
+    ---@type Shortcut[]
     local shortcuts = assert(remos.loadTable("config/home_apps.table"))
     for i, v in ipairs(shortcuts) do
-        if v.iconSmallFile then
-            v.iconSmall = remos.loadTransparentBlit(v.iconSmallFile)
-            v.iconLarge = v.iconSmall
-            v.iconSmall = v.iconSmall or unknownIconSmall
-        end
-        if v.iconLargeFile then
-            v.iconLarge = remos.loadTransparentBlit(v.iconLargeFile) or v.iconLarge or unknownIconLarge
+        if v.iconFile then
+            v.icon = remos.loadTransparentBlit(v.iconFile) or unknownIcon
         end
     end
     return shortcuts
@@ -60,20 +51,16 @@ local function shortcutMenu(index, label, path, iconSmallFile, iconLargeFile)
     rootVbox:setWindow(rootWin)
 
     local labelInput = input.inputWidget("Label")
-    rootVbox:addWidget(labelInput, 2)
+    rootVbox:addWidget(labelInput)
     labelInput:setValue(label or "")
 
     local pathPicker = input.fileWidget("Path", nil, nil, "lua")
     pathPicker.selected = path
-    rootVbox:addWidget(pathPicker, 2)
+    rootVbox:addWidget(pathPicker)
 
-    local iconSmallFilePicker = input.fileWidget("Small Icon", nil, nil, "blit", nil, "icons")
-    iconSmallFilePicker.selected = iconSmallFile
-    rootVbox:addWidget(iconSmallFilePicker, 2)
-
-    local iconLargeFilePicker = input.fileWidget("Large Icon", nil, nil, "blit", nil, "icons")
-    iconLargeFilePicker.selected = iconLargeFile
-    rootVbox:addWidget(iconLargeFilePicker, 2)
+    local iconFilePicker = input.fileWidget("Icon", nil, nil, "icon", nil, "icons")
+    iconFilePicker.selected = iconSmallFile
+    rootVbox:addWidget(iconFilePicker)
 
     local deleteButton = input.buttonWidget("Delete", function(self)
         table.remove(shortcuts, index)
@@ -82,18 +69,17 @@ local function shortcutMenu(index, label, path, iconSmallFile, iconLargeFile)
         gridList:setTable(shortcuts)
         rootVbox.exit = true
     end)
-    rootVbox:addWidget(deleteButton)
+    rootVbox:addWidget(deleteButton, 3)
     local cancelButton = input.buttonWidget("Cancel", function(self)
         rootVbox.exit = true
     end)
-    rootVbox:addWidget(cancelButton)
+    rootVbox:addWidget(cancelButton, 3)
     local saveButton = input.buttonWidget("Save", function(self)
         if type(labelInput.value) == "string" and type(pathPicker.selected) == "string" then
             shortcuts[index] = {
                 label = labelInput.value,
                 path = pathPicker.selected,
-                iconSmallFile = iconSmallFilePicker.selected,
-                iconLargeFile = iconLargeFilePicker.selected
+                iconFile = iconFilePicker.selected
             }
         else
             remos.addAppFile("remos/popup.lua", "Error!",
@@ -104,7 +90,7 @@ local function shortcutMenu(index, label, path, iconSmallFile, iconLargeFile)
         gridList:setTable(shortcuts)
         rootVbox.exit = true
     end)
-    rootVbox:addWidget(saveButton)
+    rootVbox:addWidget(saveButton, 3)
 
     tui.run(rootVbox, true, nil, true)
 end
@@ -120,15 +106,24 @@ if settings.get("remos.home.large_icons") then
     homeSize = 3
 end
 
+local strings = require "cc.strings"
+
 gridList = list.gridListWidget(shortcuts, homeSize, homeSize, function(win, x, y, w, h, item, theme)
-    local icon
-    if homeSize == 3 then
-        icon = item.iconLarge or defaultIconLarge
-    else
-        icon = item.iconSmall or defaultIconSmall
+    local icon = item.icon or defaultIcon
+    local iconx = math.floor((w - 5) / 2)
+    local wrapped = strings.wrap(item.label, w - 1)
+    local totalh = 3 + #wrapped
+    local icony = math.max(math.floor((h - totalh) / 2), 1)
+    draw.draw_blit(x + iconx, icony + y, icon, win)
+    for i, t in ipairs(wrapped) do
+        local toy = icony + i + 2
+        if toy > h then
+            break
+        end
+        local ty = toy + y
+        local tx = x + math.floor((w - #t) / 2)
+        draw.text(tx, ty, t, win)
     end
-    draw.draw_blit(x, y, icon, win)
-    draw.text(x, y + h - 1, item.label, win)
 end, function(index, item)
     remos.addAppFile(item.path)
 end, function(index, item)
@@ -145,8 +140,7 @@ tui.run(gridList, nil, function(event)
         gridList:updateGridSize(homeSize, homeSize)
         shortcuts = loadShortcuts()
         gridList:setTable(shortcuts)
-        defaultIconLarge = assert(remos.loadTransparentBlit("icons/default_icon_large.blit"))
-        defaultIconSmall = assert(remos.loadTransparentBlit("icons/default_icon_small.blit"))
+        defaultIcon = assert(remos.loadTransparentBlit("icons/default.icon"))
     elseif event == "add_home_shortcut" then
         shortcutMenu(#shortcuts + 1)
     end

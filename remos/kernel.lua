@@ -99,7 +99,7 @@ settings.define("remos.custom_palette_file", {
 settings.define("remos.splash_screen_delay", {
     description = "How long to show the Remos splash screen for",
     type = "number",
-    default = 0.5
+    default = 1
 })
 
 settings.define("remos.dark_mode", {
@@ -830,7 +830,7 @@ _G.remos = {
                 v[3] = string.gsub(v[3], "_", fgchar)
             end
         end
-        return icon --[[@as BLIT]]
+        return icon, reason
     end
 }
 

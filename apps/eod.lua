@@ -587,6 +587,49 @@ local function renderGame()
     end
 end
 
+local nilSentinal = "NILVALUE"
+
+---@generic T:table
+---@param old T
+---@param new T
+---@return T
+local function encodeDiff(old, new)
+    assert(old, debug.traceback())
+    local nt = {}
+    for k, v in pairs(new) do
+        if type(v) == "table" then
+            nt[k] = encodeDiff(old[k] or {}, v)
+            if not next(nt[k]) then
+                nt[k] = nil -- remove empty tables
+            end
+        elseif old[k] ~= v then
+            nt[k] = v
+        end
+    end
+    for k, v in pairs(old) do
+        if not new[k] then
+            nt[k] = nilSentinal
+        end
+    end
+    return nt
+end
+
+---@generic T:table
+---@param t T
+---@param diff T
+local function applyDiff(t, diff)
+    for k, v in pairs(diff) do
+        if type(v) == "table" then
+            t[k] = t[k] or {}
+            applyDiff(t[k], v)
+        elseif v == nilSentinal then
+            t[k] = nil
+        else
+            t[k] = v
+        end
+    end
+end
+
 local function recieveTicks()
     while true do
         local mesg = recieveFromHost("tick", 3)
@@ -597,9 +640,14 @@ local function recieveTicks()
             return
         end
         players = mesg.players
-        snakeTrails = mesg.snakeTrails
-        claimedLand = mesg.claimedLand
         landOwnershipTable = mesg.landOwnershipTable
+        if mesg.sync then
+            snakeTrails = mesg.snakeTrails
+            claimedLand = mesg.claimedLand
+        else
+            applyDiff(snakeTrails, mesg.snakeTrails)
+            applyDiff(claimedLand, mesg.claimedLand)
+        end
         os.queueEvent("render")
     end
 end
@@ -665,6 +713,8 @@ local connectedClients = {}
 ---@type table<string,Client>
 local clientsByColor = {}
 
+local resync = true
+
 local function sendJoinAnswer(sender, color)
     rednet.send(sender, { type = "join_answer", success = true, color = color, boardh = boardh, boardw = boardw },
         protocol)
@@ -689,6 +739,7 @@ local function handleJoinMesg(sender, msg)
         clientsByColor[color] = connectedClients[sender]
         -- print(("Client %d successfully joined, assigned color %s"):format(sender, color))
         sendJoinAnswer(sender, color)
+        resync = true
     else
         rednet.send(sender, { type = "join_answer", success = false }, protocol)
     end
@@ -778,28 +829,60 @@ local function serverWatchdog()
     end
 end
 
-local tickdelay = 0.1
+local tickdelay = 0.3
 local dominationPercentage = 0.75
 
 local function broadcast(data)
     rednet.broadcast(data, protocol)
 end
 
+local function deepCopy(t)
+    local nt = {}
+    for k, v in pairs(t) do
+        if type(v) == "table" then
+            nt[k] = deepCopy(v)
+        else
+            nt[k] = v
+        end
+    end
+    return nt
+end
+
+local lastClaimedLand, lastSnakeTrails = {}, {}
+local function sendTick(sync)
+    local tosend = {
+        type = "tick",
+        players = players,
+        landOwnershipTable = landOwnershipTable
+    }
+    if sync then
+        tosend.claimedLand = claimedLand
+        tosend.snakeTrails = snakeTrails
+        tosend.sync = true
+    else
+        tosend.claimedLand = encodeDiff(lastClaimedLand, claimedLand)
+        tosend.snakeTrails = encodeDiff(lastSnakeTrails, snakeTrails)
+    end
+    lastClaimedLand = deepCopy(claimedLand)
+    lastSnakeTrails = deepCopy(snakeTrails)
+    broadcast(tosend)
+end
+
 local function runGame()
     while true do
-        for _, player in pairs(players) do
+        local hasRemotePlayer = false
+        for col, player in pairs(players) do
             if tickPlayer(player) then
                 print(("Player %s died."):format(player.color))
             end
+            if col ~= playerColor then
+                hasRemotePlayer = true
+            end
         end
-        broadcast {
-            type = "tick",
-            players = players,
-            claimedLand = claimedLand,
-            snakeTrails = snakeTrails,
-            landOwnershipTable =
-                landOwnershipTable
-        }
+        if hasRemotePlayer then
+            sendTick(resync)
+            resync = false
+        end
         os.queueEvent("render")
         local numberOneLandOwner = landOwnershipTable[1]
         if numberOneLandOwner and numberOneLandOwner.percentage > dominationPercentage then
@@ -842,6 +925,7 @@ end
 
 ---@return {name:string,motd:string?,boardw:integer,boardh:integer,id:integer,players:integer,capacity:integer}[]
 local function getHosts()
+    rednet.open(modemSide)
     term.write("Looking up hosts")
     local hosts = { rednet.lookup(protocol) }
     local hostsInfo = {}

@@ -134,10 +134,10 @@ local function decodeColor(x, y)
     end
 end
 
-local imagew, imageh = 4, 3
+local imagew, imageh = 5, 3
 local charsx, charsy = imagew + 2, 1
 
-local image = loadIcon("icons/default_icon_small.blit") --[[@as BLIT]]
+local image = loadIcon("icons/default.icon") --[[@as BLIT]]
 
 local function setChar(x, y)
     local bg = selectedBg == -1 and " " or selectedBg == -2 and "_" or colors.toBlit(selectedBg)
@@ -162,7 +162,9 @@ while true do
     win.setVisible(false)
     draw.set_col(colors.white, colors.black, win)
     win.clear()
-    draw.square(1, 1, imagew + 2, imageh + 2, win)
+    draw.invert(win)
+    draw.square(1, 1, imagew + 2, imageh + 2, win, " ")
+    draw.invert(win)
     draw.draw_blit(2, 2, resolveTransparency(image, themeBg, themeFg), win)
     drawCharacters(charsx, charsy, termW - imagew - 3)
     drawColors(1, imageh + 3, imagew - 1)
@@ -172,6 +174,7 @@ while true do
     local e = { os.pullEvent() }
     if e[1] == "mouse_click" then
         local x, y = e[3], e[4]
+        local button = e[2]
         local ch = decodeCharacter(x, y)
         local col = decodeColor(x, y)
         if ch then
@@ -184,6 +187,17 @@ while true do
             end
         elseif x > 1 and x < imagew + 2 and y > 1 and y < imageh + 2 then
             x, y = x - 1, y - 1
+            if button == 1 then
+                setChar(x, y)
+            elseif button == 2 then
+                selectedCharacter = image[y][1]:sub(x, x)
+            end
+        end
+    elseif e[1] == "mouse_drag" then
+        local x, y = e[3], e[4]
+        local button = e[2]
+        if x > 1 and x < imagew + 2 and y > 1 and y < imageh + 2 and button == 1 then
+            x, y = x - 1, y - 1
             setChar(x, y)
         end
     elseif e[1] == "char" then
@@ -192,7 +206,7 @@ while true do
             themeFg, themeBg = themeBg, themeFg
         elseif ch == "o" then
             local popups = require "touchui.popups"
-            local f = popups.filePopup("Open file", "icons", false, false, false, "blit")
+            local f = popups.filePopup("Open file", "icons", false, false, false, "icon")
             if f then
                 local icon = loadIcon(f)
                 if icon then
@@ -204,7 +218,7 @@ while true do
             end
         elseif ch == "s" then
             local popups = require "touchui.popups"
-            local f = popups.filePopup("Save file", "icons", false, true, false, "blit")
+            local f = popups.filePopup("Save file", "icons", false, true, false, "icon")
             if f then
                 remos.saveTable(f, image)
             end
@@ -212,15 +226,16 @@ while true do
             local popups = require "touchui.popups"
             local ok = popups.confirmationPopup("Create a new file?", "You will lose your current file.")
             if ok then
-                local _, size = popups.listPopup("What size of icon?", { "Large", "Small" }, 1,
-                    function(win, x, y, w, h, item, theme)
-                        draw.text(x, y, item, win)
-                    end)
-                if size == "Large" then
-                    imagew, imageh = 7, 4
-                else
-                    imagew, imageh = 4, 3
-                end
+                -- local _, size = popups.listPopup("What size of icon?", { "Large", "Small" }, 1,
+                --     function(win, x, y, w, h, item, theme)
+                --         draw.text(x, y, item, win)
+                --     end)
+                -- if size == "Large" then
+                --     imagew, imageh = 7, 4
+                -- else
+                --     imagew, imageh = 4, 3
+                -- end
+                imagew, imageh = 5, 3
                 charsx, charsy = imagew + 2, 1
                 generateImage()
             end
