@@ -830,7 +830,7 @@ _G.remos = {
                 v[3] = string.gsub(v[3], "_", fgchar)
             end
         end
-        return icon --[[@as BLIT]]
+        return icon, reason
     end
 }
 

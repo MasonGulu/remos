@@ -350,7 +350,8 @@ function fileWidget__index:draw()
 end
 
 function fileWidget__index:shortPress(button, x, y)
-    if tui.withinSquare(x, y, self.w - #browseString, 1, self.w, 1) then
+    local centerY = math.floor(self.h / 2)
+    if tui.withinSquare(x, y, self.w - #browseString, centerY, self.w, centerY) then
         self.selected = require("touchui.popups").filePopup(("Picking %s"):format(self.label), self.path, false,
             self.write,
             self.allowDirs, self.extension)

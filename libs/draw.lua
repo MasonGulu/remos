@@ -261,22 +261,25 @@ end
 ---@param y integer
 ---@param w integer
 ---@param h integer
+---@param ch string? box side override
 ---@param dev Window|term
-local function square(x, y, w, h, dev)
-    local topl = string.char(0x97) -- normal
-    local topr = string.char(0x94)
-    local top  = string.char(0x83)
-    local side = string.char(0x95) -- both (l/r)
-    local botl = string.char(0x8a) -- inverse
-    local bot  = string.char(0x8f)
-    local botr = string.char(0x85)
+local function square(x, y, w, h, dev, ch)
+    local topl = ch or string.char(0x97) -- normal
+    local topr = ch or string.char(0x94)
+    local top  = ch or string.char(0x83)
+    local side = ch or string.char(0x95) -- both (l/r)
+    local botl = ch or string.char(0x8a) -- inverse
+    local bot  = ch or string.char(0x8f)
+    local botr = ch or string.char(0x85)
     if not dev then dev = win end -- formatter kept aligning assignment here.
     text(x, y, topl, dev)
     text(x + 1, y, top:rep(w - 2), dev)
     for dy = 1, h - 2 do
         text(x, y + dy, side, dev)
     end
-    invert(dev)
+    if not ch then
+        invert(dev)
+    end
     text(x + w - 1, y, topr, dev)
     text(x, y + h - 1, botl, dev)
     text(x + 1, y + h - 1, bot:rep(w - 2), dev)
@@ -284,7 +287,9 @@ local function square(x, y, w, h, dev)
     for dy = 1, h - 2 do
         text(x + w - 1, y + dy, side, dev)
     end
-    invert(dev)
+    if not ch then
+        invert(dev)
+    end
 end
 
 ---@alias BLIT {[1]:string,[2]:string,[3]:string}[]
